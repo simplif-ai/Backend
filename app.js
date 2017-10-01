@@ -6,46 +6,74 @@
  */
 
 //List dependencies
-const express = require('express', 4.15.4);
+const express = require('express');
 const app = express();
-const parseurl = require('express');
+const parseurl = require('parseurl');
 const bodyparser = require('body-parser');
 const path = require('path');
-const expressValidator = require('express-validator');
+//const expressValidator = require('express-validator');
+const request = require('request');
+
 //add dependencies for database
+//setup database
 
 //parse application/JSON
 app.use(bodyparser.json());
 
-//parses the body of all incoming requests
-app.use(function (req, res) {
-    res.setHeader('Content-Type', 'text/plain');
-    res.write('you posted:\n');
-    res.end(JSON.stringify(req.body, null, 2));
-})
-
 //User endpoint
 //Forget passowrd mailto endpoint
 
+app.get('/mocktext', function(req, res) {
+    var mock = "Hi this is Lena's mock text";
+    var json = {
+        'text': mock
+    }
+        var options = {
+        url: 'http://localhost:8000/sumarizertext',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(json) 
+    }
+    request.post(options, function(error, response, body){
+        res.send(JSON.parse(body));
+    })
+})
+
 //Text endpoint; text sumbitted by user is handled here
-//This route used for testing purposes until the route 
-//needed is created 
-app.get('/home/submit', function(req, res){
-    //verify the header is "Text"
-    //get the body of the text and store in a temp buffer
+//It is then sent to the summarizer api and the data received
+//is sent back to the user
+app.post('/sumarizertext', function(req, res){
+    //url subject to change once api is created
+    var summarizerApi = "https://ir.thirty2k.com/summarizeTEST";
+    var options = {
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(req.body)
+    }
+
+    //send the text received from user to api of summarizer
+    //get for testing reasons, use post when using summarizer api url
+    request.get(summarizerApi, options, function(error, response, body) {
+        //recives data from summarizerAPI
+        //sends it back to the summarizertext endpoint which would be the
+        //body response to any request that posts a request to it
+        //uses json to send a stringfied json object of the non-object data from api
+        res.json(body);
+    })   
 })
 
-//send the text received from user to api of summarizer
-app.post('/api/summarizer', function(req, res){
-    
+//another request to get the saved version from the user of the summarizer text
+//and send it to db
+app.post('/savetodb', function(req, res) {
+    //sends to db 
 })
 
-//receive the summary from the summarizer api request 
-//and add string to db
-//using this route for testing purposes until route creates
-app.get('/summaarizeTEST', function(req, res){
-    //verify header
-    //get the ranking and convert to string
-})
+app.listen('8000');
+console.log('Listening on port ' + 8000 + '...');
+
+
+
 
 
