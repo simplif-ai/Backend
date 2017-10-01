@@ -76,8 +76,8 @@ app.post('/savetodb', function(req, res) {
 var GoogleAuth; // Google Auth object.
 function initClient() {
   gapi.client.init({
-      'apiKey': 'YOUR_API_KEY',
-      'clientId': 'YOUR_CLIENT_ID',
+      'apiKey': 'ON6JuWU0xirbexXJ3H2a7wYq',
+      'clientId': '950783336607-ouratd1dt1hr3baond6u36664ijrmjnq.apps.googleusercontent.com',
       'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly',
       'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
   }).then(function () {
@@ -115,6 +115,14 @@ app.post('/login', function(req, res)) {
 }
 
 
+//allows the user to change their password
+app.post('/changePassword', function(req, res)) {
+	//talk to database here once Lena has imported it
+}
+
+app.post('/deleteAccount', function(req,res)) {
+	//delete the user data and all of the data it points to
+}
 
 //create account endpoint
 //lets the user create an account without google authentication
