@@ -34,3 +34,21 @@ app.get('/mocktext', function(req, res) {
     })
 })
 ```
+
+## How to test the middleware api fuctionality 
+
+1. Pull the code
+2. Use this command to install all dependencies needed from the package.js
+```
+npm install
+```
+3. Everything should be setup so you can run:
+```
+node app.js
+```
+4. You'll see a message on console "Listening to port 8000"
+
+5. Go to a browser and put in url: 'http://localhost:8000/mocktext'
+
+6. You will see the mock summarizer data that was sent from summarizer api
+  

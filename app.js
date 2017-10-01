@@ -23,6 +23,8 @@ app.use(bodyparser.json());
 //User endpoint
 //Forget passowrd mailto endpoint
 
+//this is a mock api to test the fuctionality of the
+//middleware function
 app.get('/mocktext', function(req, res) {
     var mock = "Hi this is Lena's mock text";
     var json = {
