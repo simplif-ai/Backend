@@ -1,5 +1,5 @@
 /**
- * midlle ware to connect frontend with api for summarizer 
+ * midlle ware to connect frontend with api for summarizer
  * creates all dependencies and endpoints
  * Author: Lena Arafa
  * Date: 9/24/2017
@@ -20,6 +20,13 @@ const request = require('request');
 //parse application/JSON
 app.use(bodyparser.json());
 
+// enable cors
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 //User endpoint
 //Forget passowrd mailto endpoint
 
@@ -35,7 +42,7 @@ app.get('/mocktext', function(req, res) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(json) 
+        body: JSON.stringify(json)
     }
     request.post(options, function(error, response, body){
         res.send(JSON.parse(body));
@@ -47,29 +54,36 @@ app.get('/mocktext', function(req, res) {
 //is sent back to the user
 app.post('/sumarizertext', function(req, res){
     //url subject to change once api is created
-    var summarizerApi = "https://ir.thirty2k.com/summarizeTEST";
+    var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
         headers: {
+            'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(req.body)
+        body: JSON.stringify(req.body),
+        method: 'POST'
     }
 
     //send the text received from user to api of summarizer
     //get for testing reasons, use post when using summarizer api url
-    request.get(summarizerApi, options, function(error, response, body) {
+    request.post(summarizerApi, options, function(error, response, body) {
         //recives data from summarizerAPI
         //sends it back to the summarizertext endpoint which would be the
         //body response to any request that posts a request to it
         //uses json to send a stringfied json object of the non-object data from api
-        res.json(body);
-    })   
-})
+        console.log('statusCode',response.statusCode);
+        if (!error && response.statusCode === 200) {
+          res.send(response.body);
+        } else {
+          res.send({ success: false, error: error });
+        }
+    });
+});
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
 app.post('/savetodb', function(req, res) {
-    //sends to db 
+    //sends to db
 })
 
 //Google authentication setup
@@ -133,8 +147,3 @@ app.post('/createAccount', function(req, res)) {
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
-
-
-
-
-
