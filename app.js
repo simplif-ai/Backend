@@ -100,8 +100,8 @@ app.post('/savetodb', function(req, res) {
           } else {
             res.send({ success: false, error: error });
           }
-    });
 });
+
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
