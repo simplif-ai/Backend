@@ -19,11 +19,10 @@ const nodemailer = require ('nodemailer');
 //setup database
 var connection = mysql.createConnection({
     host: 'simplifai.caijj6vztwxw.us-east-2.rds.amazonaws.com',
-    user: 'simplifai',
-    password: '7uRr)MkBu[pabQv3',
+    user: 'admin',
+    password: 'mGLPkLat3W^y9w[w',
     port: '3306'
 });
-
 
 //parse application/JSON
 app.use(bodyparser.json());
@@ -48,7 +47,7 @@ app.get('/mocktext', function (req, res) {
         //console.log(body);
         res.send(JSON.parse(body));
     })
-})
+});
 
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
@@ -78,7 +77,7 @@ app.post('/sumarizertext', function (req, res) {
             res.send({ success: false, error: error });
           }
     })
-})
+});
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
@@ -93,8 +92,9 @@ app.post('/savetodb', function (req, res) {
         connection.query(sql, function(err, result){
             if(err) {
                 console.error('Error with adding summary column');
+            } else {
+            	console.log('Table Altered');
             }
-            console.log('Table Altered');
 
             sql = "INSERT INTO Users (summary) VALUES ("+req.body+")";
         })
@@ -106,7 +106,7 @@ app.post('/savetodb', function (req, res) {
         })
     })
     connection.end();
-})
+});
 
 //request to receive forget password post and send an email to user
 app.post('/mailto', function (req, res) {
@@ -155,8 +155,12 @@ app.post('/mailto', function (req, res) {
         }
     })
     
-})
+});
 
+
+/**
+**These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
+**/
 //Google authentication setup
 var GoogleAuth; // Google Auth object.
 function initClient() {
@@ -176,7 +180,7 @@ function initClient() {
       setSigninStatus();
 
     });
-}
+};
 
 function setSigninStatus(isSignedIn) {
     var user = GoogleAuth.currentUser.get();
@@ -186,35 +190,40 @@ function setSigninStatus(isSignedIn) {
     } else {
       //let the user know they're not authorized
     }
-  }
+  };
+
 
 //login endpoint
 //allows the user to login with google authentication
-app.post('/login', function(req, res)) {
+app.post('/login', function(req, res) {
 	if (GoogleAuth.isSignedIn.get()) {
 		//user is already signed in!
     } else {
       // User is not signed in. Start Google auth flow.
       GoogleAuth.signIn();
     }
-}
+});
 
-
-//allows the user to change their password
-app.post('/changePassword', function(req, res)) {
+//this endpoint allows the user to change their password in the database.
+app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
-}
+});
 
-app.post('/deleteAccount', function(req,res)) {
+//this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+app.post('/resetPassword', function(req, res) {
+	//use mailer to send email to the email address passed in.
+
+});
+
+//this endpoint deletes the user from the database and removes all data associated with them.
+app.post('/deleteAccount', function(req,res) {
 	//delete the user data and all of the data it points to
-}
+});
 
-//create account endpoint
-//lets the user create an account without google authentication
-app.post('/createAccount', function(req, res)) {
+//lets the user create an account without google authentication by using our database instead.
+app.post('/createAccount', function(req, res) {
 
-
-}
+});
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
