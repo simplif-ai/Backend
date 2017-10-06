@@ -241,23 +241,30 @@ app.post('/login', function(req, res) {
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
-	var user = JSON.parse(req);
+	var user = req.body;
 	var email = user.email;
 	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (err) {
+			console.log("err");
 			res.status(500).send({ success: false, error: error });
 		} else {
-			if (result.count == 0) {
-				var sql = "UPDATE users SET password = newPassword WHERE email = email";
-				connection.query(sql, function (err, result) {
+			console.log("Not err");
+			console.log(result);
+			if (result.length == 1) {
+				console.log("count is 1");
+				connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
 					if (err) {
+						console.log("err 2");
 						res.status(500).send({ success: false, error: error });
 					} else {
+						console.log("Success!");
 						res.status(200).send({ success: true});
 					}
 				})
+			} else {
+				res.status(500).send({ success: false, error: "User not found." });
 			}
 		}
 	})
