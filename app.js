@@ -96,6 +96,10 @@ app.post('/sumarizertext', function (req, res) {
     });
 });
 
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
 app.post('/savetodb', function (req, res) {
@@ -149,28 +153,6 @@ app.post('/mailto', function (req, res) {
 
      //send email
     //text has the paramter url of connecting to the page for resetting password
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'simplif.ai@gmail.com',
-          pass: 'simplif.ai2017'
-        }
-      });
-    var mailOptions = {
-        from: 'simplif.ai@gmail.com',
-        to: email,
-        subject: 'Reset password to Simplif.ai',
-        text: req.param.url
-    }
-
-    transporter.sendMail(mailOptions, function(error, infor){
-        if(error) {
-            console.log('error sending email for resetting password');
-        }
-        else {
-            console.log('Email sent: ' + req.param.url);
-        }
-    });
 
 });
 
@@ -292,8 +274,41 @@ app.post('/changePassword', function(req, res) {
 });
 
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
-app.post('/resetPassword', function(req, res) {
-	//use mailer to send email to the email address passed in.
+app.post('/resetPassword', function(req, res, next) {
+    //use mailer to send email to the email address passed in.
+    //console.log(req);
+   // console.log(req.body);
+    var email = req.body.email;
+    console.log("email " + email);
+    var url = 'https://localhost:8000/password-reset?email=' + email;
+    var transporter = nodemailer.createTransport({
+        service: 'GMAIL',
+        auth: {
+          user: 'simplif.ai17@gmail.com',
+          pass: 'simplif.ai2017'
+        }
+      });
+      console.log(transporter);
+    var mailOptions = {
+        from: 'simplif.ai17@gmail.com',
+        to: email,
+        subject: 'Reset password to Simplif.ai',
+        text: url,
+        html: '<p>' +url + '</p>'
+    }
+    console.log(mailOptions.html);
+    transporter.sendMail(mailOptions, function(error, info){
+        console.log(error);
+        console.log(info);
+        if(error) {
+            console.log('error sending email for resetting password');
+        }
+        else {
+            console.log('Email sent: ' + req.param.url);
+        }
+        nodemailer.getTestMessageUrl(info);
+        transporter.close();
+    });
 
 
 });
