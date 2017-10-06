@@ -387,9 +387,10 @@ app.post('/createAccount', function(req, res) {
 app.post('/profile', function(req, res) {
 
 	//fetch the user by email and return it in json
-	var user = JSON.parse(req)
-	var email = JSON.parse(req).email
-	connection.query("SELECT * FROM customers WHERE email = email", function (err, result) {
+	var user = req.body;
+	var email = user.email;
+
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (result.length == 0) {
 			res.status(500).send({ success: false, error: "This email address doesn't exist." });
 
@@ -402,7 +403,8 @@ app.post('/profile', function(req, res) {
 				prefersEmailUpdates: result[0].prefersEmailUpdates,
 				postCount: result[0].postCount
 			}
-			res.send(JSON.stringify(data))
+
+			res.send(data)
 
 		} else {
 			//more than one user?
