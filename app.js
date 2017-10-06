@@ -220,6 +220,22 @@ app.post('/loginWithGoogle', function(req, res) {
 app.post('/login', function(req, res) {
 	//login without google API
 	//email and password given
+	var user = JSON.parse(req);
+	var email = user.email;
+	var password = user.password;
+
+	connection.query("SELECT * FROM users WHERE email = email AND password = password", function (err, result) {
+		if err {
+			res.status(500).send({ success: false, error: error });
+		} else {
+			if (result.count == 0) {
+				//do JWT stuff
+				res.status(200).send({ success: true});
+			}
+		}
+	})
+
+
 })
 
 //this endpoint allows the user to change their password in the database.
@@ -237,8 +253,8 @@ app.post('/resetPassword', function(req, res) {
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
 	//deep delete the user data and all of the data it points to
-	var user = JSON.parse(req)
-	var email = user.email
+	var user = JSON.parse(req);
+	var email = user.email;
 
 	//get the user ID from the email address:
 	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
