@@ -46,7 +46,7 @@ app.get('/mocktext', function (req, res) {
     request.post(options, function (error, response, body) {
         //console.log(body);
         res.send(JSON.parse(body));
-    })
+    });
 });
 
 //Text endpoint; text sumbitted by user is handled here
@@ -76,7 +76,7 @@ app.post('/sumarizertext', function (req, res) {
           } else {
             res.send({ success: false, error: error });
           }
-    })
+    });
 });
 
 //another request to get the saved version from the user of the summarizer text
@@ -97,14 +97,14 @@ app.post('/savetodb', function (req, res) {
             }
 
             sql = "INSERT INTO Users (summary) VALUES ("+req.body+")";
-        })
+        });
         connection.query(sql, function(err, result){
             if(err) {
                 console.error('Error with instering summary in table');
             }
             console.log('summary record inserted');
-        })
-    })
+        });
+    });
     connection.end();
 });
 
@@ -153,7 +153,7 @@ app.post('/mailto', function (req, res) {
         else {
             console.log('Email sent: ' + req.param.url);
         }
-    })
+    });
     
 });
 
@@ -207,6 +207,7 @@ app.post('/login', function(req, res) {
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
+
 });
 
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
@@ -215,15 +216,94 @@ app.post('/resetPassword', function(req, res) {
 
 });
 
+//req: 
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
-	//delete the user data and all of the data it points to
+	//deep delete the user data and all of the data it points to
+
+
+	//get the user ID from the email address:
+	connection.query("SELECT * FROM users WHERE email = 'sdblatz@gmail.com'", function (err, result) {
+    if (err) throw err;
+    console.log(result);
+    //now that we have the user, grab their ID and then query notes for their id...
+    var id = result[0].idUser; //should only be one user...
+
+    //get all of the notes we own:
+
+    connection.query("SELECT * FROM notes WHERE userID = id", function (err, result) {
+    	//delete
+    });
+
+
+  });
+	//delete all the summaries of notes we own
+
+	//delete all the notes we own
+
+	//delete the actual user
+
+	var sql = "DELETE FROM User WHERE email = 'sdblatz@gmail.com'";
+	connection.query(sql, function(err, result) {
+		if (err) throw err;
+		console.log("Deleted user!");
+
+	});
 });
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
 
+	//check if this email exists already in the database, if so, return an error.
+	connection.query("SELECT * FROM customers WHERE email = 'sdblatz@gmail.com", function (err, result) {
+		if (result.length > 0) {
+			//sorry, this email is already taken!
+			console.log("Email address already taken.");
+			//return some kind of error
+			res.statusCode = 
+			//
+			res.status(500).send({ success: false, error: "This email address is already taken." });
+
+
+		}
+	});
+
+
+	var sql = "INSERT INTO User (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES ('Sawyer', 'sdblatz@gmail.com', 'password1', '', 'false', 0)";
+	connection.query(sql, function(err, result) {
+		if (err) throw err;
+		console.log("New user created!");
+
+	});
 });
+
+app.post('/profile', function(req, res) {
+
+	//check if this email exists already in the database, if so, return an error.
+	connection.query("SELECT * FROM customers WHERE email = 'sdblatz@gmail.com", function (err, result) {
+		if (result.length > 0) {
+			//sorry, this email is already taken!
+
+			//set status 500 to show we have an error...
+			res.status(500).send({ success: false, error: "This email address is already taken." });
+
+
+		}
+	});
+
+
+	var sql = "INSERT INTO User (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES ('Sawyer', 'sdblatz@gmail.com', 'password1', '', 'false', 0)";
+	connection.query(sql, function(err, result) {
+		if (err) throw err;
+		console.log("New user created!");
+
+	});
+});
+
+app.post('/editProfile', function(req, res) {
+
+});
+
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
