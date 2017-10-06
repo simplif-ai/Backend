@@ -124,6 +124,22 @@ sucess: "true",
 error: "Email doesn't exist." //optional
 }
 
+### /receivePassword
+Receives:
+{
+email: "luna.ad2@gmail.com",
+}
+
+Sends:
+{
+sucess: sends email to the above email
+erro: "email has not been sent"
+}
+
+This is a post request for sending an email of the link to reset the password. 
+An email is sent in the body of the request where the reset password link will be sent to it
+using nodemailer in nodejs.
+
 ## How to use summarizer Api
 To send text to the summarizer Api to summarize(using the middleware endpoint):
 1. Make a post http-request on the endpoint path 'http://localhost:8000/sumarizertext'. 
@@ -175,4 +191,6 @@ node app.js
 5. Go to a browser and put in url: 'http://localhost:8000/mocktext'
 
 6. You will see the mock summarizer data that was sent from summarizer api
+
+
   
