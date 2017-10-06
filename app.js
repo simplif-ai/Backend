@@ -262,33 +262,33 @@ app.post('/resetPassword', function(req, res) {
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
 	//deep delete the user data and all of the data it points to
-	var user = JSON.parse(req);
+	var user = req.body;
 	var email = user.email;
 
 	//get the user ID from the email address:
-	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (err) {
 			res.status(500).send({ success: false, error: error });
 		} else {
+			console.log("inside user");
 			var id = result[0].idUser;
 			//query notes for all with this userID:
-			connection.query("SELECT * FROM notes WHERE userID = id", function (err, result) {
+			connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
 				if (err) {
 
 				} else {
-					for (var i = 0; i <result.length; i++) {
-
+					console.log("inside notes");
+					for (var i = 0; i < result.length; i++) {
+						console.log("inside for loop");
 						//delete all the summaries:
-						var sql = "DELETE FROM summaries WHERE noteID = result[i].idNote";
-						connection.query(sql, function(err, result) {
+						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
 							if (err) {
 								console.log("Couldn't delete summary");
 							}
 						});
 
 						//delete the actual note:
-						var sql = "DELETE FROM notes WHERE idNote = result[i].idNote";
-						connection.query(sql, function(err, result) {
+						connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
 							if (err) {
 								console.log("Couldn't delete note");
 							}
@@ -306,11 +306,11 @@ app.post('/deleteAccount', function(req,res) {
 					}
 
 					//all notes deleted, delete the actual user!
-					var sql = "DELETE FROM users WHERE idUser = id";
-					connection.query(sql, function(err, result) {
+					connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
 							if (err) {
-								console.log("Couldn't delete note");
+								console.log("Couldn't delete user");
 							} else {
+								console.log("Deleting user!");
 								res.status(200).send({ success: true});
 							}
 					});
