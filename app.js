@@ -252,7 +252,7 @@ app.post('/login', function(req, res) {
 				//do JWT stuff
 				res.status(200).send({ success: true, token: token});
 			} else {
-				res.status(500).send({ success: true, error: "Username or password is incorrect."});
+				res.status(500).send({ success: false, error: "Username or password is incorrect."});
 			}
 		}
 	})
@@ -433,7 +433,7 @@ app.post('/profile', function(req, res) {
 	//fetch the user by email and return it in json
 	var user = req.body;
 	var email = user.email;
-
+  console.log('req.body', req.body);
 	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (result.length == 0) {
 			res.status(500).send({ success: false, error: "This email address doesn't exist." });
