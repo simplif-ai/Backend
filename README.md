@@ -1,17 +1,32 @@
 # Backend
 
 ## Endpoints
+
+### /login
+Receives:
+{
+email: "sdblatz@gmail.com",
+password: "securePassword",
+}
+
+Sends:
+{
+sucess: "true",
+token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ",
+error: "Email does not exist." //optional
+}
+
 ### /editProfile
 Receives:
 {
-email: "sdblatz@gmail.com"
-newEmail: "sblatz@purdue.edu" //optional
+email: "sdblatz@gmail.com",
+newEmail: "sblatz@purdue.edu", //optional
 newName: "Sawyer" //optional
 }
 
 Sends:
 {
-sucess: "true"
+sucess: "true",
 error: "Email does not exist." //optional
 }
 
@@ -24,11 +39,11 @@ email: "sdblatz@gmail.com"
 
 Sends:
 {
-sucess: "true"
-name: "Sawyer"
-email: "sdblatz@gmail.com"
-password: "securePass"
-prefersEmailUpdates: "0"
+sucess: "true",
+name: "Sawyer",
+email: "sdblatz@gmail.com",
+password: "securePass",
+prefersEmailUpdates: "0",
 postCount: "3"
 }
 
@@ -36,10 +51,10 @@ postCount: "3"
 
 Receives:
 {
-email: "sdblatz@gmail.com"
-name: "Sawyer"
-email: "sdblatz@gmail.com"
-password: "securePass"
+email: "sdblatz@gmail.com",
+name: "Sawyer",
+email: "sdblatz@gmail.com",
+password: "securePass",
 prefersEmailUpdates: "0"
 }
 
@@ -58,7 +73,7 @@ email: "sdblatz@gmail.com"
 
 Sends:
 {
-sucess: "true"
+sucess: "true",
 error: "Email doesn't exist." //optional
 }
 
@@ -66,14 +81,14 @@ error: "Email doesn't exist." //optional
 
 Receives:
 {
-email: "sdblatz@gmail.com"
-password: "oldPassword"
+email: "sdblatz@gmail.com",
+password: "oldPassword",
 newPassword: "newPassword"
 }
 
 Sends:
 {
-sucess: "true"
+sucess: "true",
 error: "Email doesn't exist." //optional
 }
 
