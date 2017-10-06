@@ -15,15 +15,15 @@ const path = require('path');
 const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
-
+var jwt = require('jsonwebtoken');
 //setup database
 var connection = mysql.createConnection({
-    host: 'simplifai.caijj6vztwxw.us-east-2.rds.amazonaws.com',
-    user: 'simplifai',
-    password: '7uRr)MkBu[pabQv3',
-    port: '3306'
+    host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
+    user: 'admin',
+    password: 'mGLPkLat3W^y9w[w',
+    port: '3306',
+    database : 'Simplifai_Database'
 });
-
 
 //parse application/JSON
 app.use(bodyparser.json());
@@ -57,8 +57,8 @@ app.get('/mocktext', function (req, res) {
     request.post(options, function (error, response, body) {
         //console.log(body);
         res.send(JSON.parse(body));
-    })
-})
+    });
+});
 
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
@@ -100,8 +100,8 @@ app.post('/savetodb', function(req, res) {
           } else {
             res.send({ success: false, error: error });
           }
-    })
-})
+    });
+});
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
@@ -116,20 +116,21 @@ app.post('/savetodb', function (req, res) {
         connection.query(sql, function(err, result){
             if(err) {
                 console.error('Error with adding summary column');
+            } else {
+            	console.log('Table Altered');
             }
-            console.log('Table Altered');
 
             sql = "INSERT INTO Users (summary) VALUES ("+req.body+")";
-        })
+        });
         connection.query(sql, function(err, result){
             if(err) {
                 console.error('Error with instering summary in table');
             }
             console.log('summary record inserted');
-        })
-    })
+        });
+    });
     connection.end();
-})
+});
 
 //request to receive forget password post and send an email to user
 app.post('/mailto', function (req, res) {
@@ -165,7 +166,7 @@ app.post('/mailto', function (req, res) {
     var mailOptions = {
         from: 'simplif.ai@gmail.com',
         to: email,
-        subject: 'Reset password to Simplif.ai', 
+        subject: 'Reset password to Simplif.ai',
         text: req.param.url
     }
 
@@ -176,10 +177,14 @@ app.post('/mailto', function (req, res) {
         else {
             console.log('Email sent: ' + req.param.url);
         }
-    })
-    
-})
+    });
 
+});
+
+
+/**
+***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
+**/
 //Google authentication setup
 var GoogleAuth; // Google Auth object.
 function initClient() {
@@ -199,7 +204,7 @@ function initClient() {
       setSigninStatus();
 
     });
-}
+};
 
 function setSigninStatus(isSignedIn) {
     var user = GoogleAuth.currentUser.get();
@@ -209,35 +214,260 @@ function setSigninStatus(isSignedIn) {
     } else {
       //let the user know they're not authorized
     }
-  }
+  };
+
 
 //login endpoint
 //allows the user to login with google authentication
-app.post('/login', function(req, res)) {
+app.post('/loginWithGoogle', function(req, res) {
 	if (GoogleAuth.isSignedIn.get()) {
 		//user is already signed in!
     } else {
       // User is not signed in. Start Google auth flow.
       GoogleAuth.signIn();
     }
-}
 
+    //return JWT token
+});
 
-//allows the user to change their password
-app.post('/changePassword', function(req, res)) {
+app.post('/login', function(req, res) {
+	//login without google API
+	//email and password given
+	var user = req.body;
+	var email = user.email;
+	var password = user.password;
+
+	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		} else {
+							console.log(result)
+
+			if (result.length == 1) {
+				//do JWT stuff
+				res.status(200).send({ success: true});
+			} else {
+				res.status(500).send({ success: true, error: "Username or password is incorrect."});
+			}
+		}
+	})
+})
+
+//this endpoint allows the user to change their password in the database.
+app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
-}
+	var user = req.body;
+	var email = user.email;
+	var newPassword = user.newPassword;
 
-app.post('/deleteAccount', function(req,res)) {
-	//delete the user data and all of the data it points to
-}
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		if (err) {
+			console.log("err");
+			res.status(500).send({ success: false, error: error });
+		} else {
+			console.log("Not err");
+			console.log(result);
+			if (result.length == 1) {
+				console.log("count is 1");
+				connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
+					if (err) {
+						console.log("err 2");
+						res.status(500).send({ success: false, error: error });
+					} else {
+						console.log("Success!");
+						res.status(200).send({ success: true});
+					}
+				})
+			} else {
+				res.status(500).send({ success: false, error: "User not found." });
+			}
+		}
+	})
+});
 
-//create account endpoint
-//lets the user create an account without google authentication
-app.post('/createAccount', function(req, res)) {
+//this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+app.post('/resetPassword', function(req, res) {
+	//use mailer to send email to the email address passed in.
+
+});
+
+//this endpoint deletes the user from the database and removes all data associated with them.
+app.post('/deleteAccount', function(req,res) {
+	//deep delete the user data and all of the data it points to
+	var user = req.body;
+	var email = user.email;
 
 
-}
+	//get the user ID from the email address:
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		} else {
+			console.log("inside user");
+			var id = result[0].idUser;
+			//query notes for all with this userID:
+			connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
+				if (err) {
+
+				} else {
+					console.log("inside notes");
+					for (var i = 0; i < result.length; i++) {
+						console.log("inside for loop");
+						//delete all the summaries:
+						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete summary");
+							}
+						});
+
+						//delete the actual note:
+						connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete note");
+							}
+						});
+
+						/*
+						connection.query("SELECT * FROM summaries WHERE noteID = result[i].idNote", function (err, result) {
+							if (err) {
+
+							} else {
+
+							}
+						})
+						*/
+					}
+
+					//all notes deleted, delete the actual user!
+					connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete user");
+							} else {
+								console.log("Deleting user!");
+								res.status(200).send({ success: true});
+							}
+					});
+				}
+    		});
+		}
+  });
+});
+
+//lets the user create an account without google authentication by using our database instead.
+app.post('/createAccount', function(req, res) {
+
+	//res.status(500).send({success: false, body: req.body.name})
+
+	var user = req.body
+	var name = user.name
+	var email = user.email
+	var password = user.password
+	var prefersEmailUpdates = user.prefersEmailUpdates
+
+	//check if this email exists already in the database, if so, return an error.
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		console.log("inside select");
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		}
+
+		if (result.length > 0) {
+			//sorry, this email is already taken!
+			console.log("Email address already taken.");
+			console.log("email collison: " + result[0].email);
+			res.status(500).send({ success: false, error: "This email address is already taken." });
+		} else {
+			console.log("length 1");
+			var newUser = {
+				name: name,
+				email: email,
+				password: password,
+				feedback: '',
+				prefersEmailUpdates: prefersEmailUpdates,
+				noteCount: 0
+			}
+			connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
+				console.log("inside insert");
+				if (err) {
+					res.status(500).send({success: false, error: err})
+				} else {
+					res.status(200).send({success: true});
+				}
+			});
+		}
+	});
+});
+
+app.post('/profile', function(req, res) {
+
+	//fetch the user by email and return it in json
+	var user = req.body;
+	var email = user.email;
+
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		if (result.length == 0) {
+			res.status(500).send({ success: false, error: "This email address doesn't exist." });
+
+		} else if (result.length == 1) {
+			var data = {
+				success: true,
+				name: result[0].name,
+				email: result[0].email,
+				password: result[0].password,
+				prefersEmailUpdates: result[0].prefersEmailUpdates,
+				postCount: result[0].postCount
+			}
+
+			res.send(data)
+
+		} else {
+			//more than one user?
+			console.log("More than one user found...");
+		}
+	});
+});
+
+app.post('/editProfile', function(req, res) {
+	//update name
+	//update email
+	var user = req.body;
+	var email = user.email;
+
+	if (user.newEmail != null) {
+		//update email
+		console.log("Update email");
+		//  'UPDATE employees SET location = ? Where ID = ?',
+
+		connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+			}
+		});
+
+	} else {
+		console.log("email not updated");
+	}
+
+	if (user.newName != null) {
+		//update name
+		console.log("Update name");
+		connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+
+			}
+		});
+
+	} else {
+		console.log("name not updated");
+
+	}
+
+	res.status(200).send({success: true})
+
+
+});
+
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
