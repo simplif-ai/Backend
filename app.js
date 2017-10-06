@@ -64,6 +64,7 @@ app.get('/mocktext', function (req, res) {
 //is sent back to the user
 app.post('/sumarizertext', function (req, res) {
     //url subject to change once api is created
+    console.log('req.body', req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
         headers: {
@@ -89,6 +90,7 @@ app.post('/sumarizertext', function (req, res) {
         }
     });
 });
+
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
@@ -284,6 +286,7 @@ app.post('/deleteAccount', function(req,res) {
 	var user = req.body;
 	var email = user.email;
 
+
 	//get the user ID from the email address:
 	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (err) {
@@ -414,6 +417,43 @@ app.post('/profile', function(req, res) {
 });
 
 app.post('/editProfile', function(req, res) {
+	//update name
+	//update email
+	var user = req.body;
+	var email = user.email;
+
+	if (user.newEmail != null) {
+		//update email
+		console.log("Update email");
+		//  'UPDATE employees SET location = ? Where ID = ?',
+
+		connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+			}
+		});
+
+	} else {
+		console.log("email not updated");
+	}
+
+	if (user.newName != null) {
+		//update name
+		console.log("Update name");
+		connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+
+			}
+		});
+
+	} else {
+		console.log("name not updated");
+
+	}
+
+	res.status(200).send({success: true})
+
 
 });
 
