@@ -195,7 +195,7 @@ function setSigninStatus(isSignedIn) {
 
 //login endpoint
 //allows the user to login with google authentication
-app.post('/login', function(req, res) {
+app.post('/loginWithGoogle', function(req, res) {
 	if (GoogleAuth.isSignedIn.get()) {
 		//user is already signed in!
     } else {
@@ -203,6 +203,10 @@ app.post('/login', function(req, res) {
       GoogleAuth.signIn();
     }
 });
+
+app.post('/login', function(req, res) {
+	//login without google API
+})
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
@@ -216,7 +220,6 @@ app.post('/resetPassword', function(req, res) {
 
 });
 
-//req: 
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
 	//deep delete the user data and all of the data it points to
@@ -251,46 +254,62 @@ app.post('/deleteAccount', function(req,res) {
 	});
 });
 
+
+
+
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
-
+	console.log("req: " + req)
+	var user = JSON.parse(req)
+	console.log("user: " + user)
+	var name = user.name
+	var email = user.email
+	var password = user.password
+	var prefersEmailUpdates = user.prefersEmailUpdates
+	
 	//check if this email exists already in the database, if so, return an error.
-	connection.query("SELECT * FROM customers WHERE email = 'sdblatz@gmail.com", function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
 		if (result.length > 0) {
 			//sorry, this email is already taken!
 			console.log("Email address already taken.");
-			//return some kind of error
-			res.statusCode = 
-			//
 			res.status(500).send({ success: false, error: "This email address is already taken." });
-
-
+		} else {
+			var sql = "INSERT INTO users (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES (name, email, password, '', prefersEmailUpdates, 0)";
+			connection.query(sql, function(err, result) {
+				if (err) {
+					res.status(500).send({success: false, error: err})
+				} else {
+					res.status(200).send({success: true});
+				}
+			});
 		}
-	});
-
-
-	var sql = "INSERT INTO User (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES ('Sawyer', 'sdblatz@gmail.com', 'password1', '', 'false', 0)";
-	connection.query(sql, function(err, result) {
-		if (err) throw err;
-		console.log("New user created!");
-
 	});
 });
 
 app.post('/profile', function(req, res) {
 
-	//check if this email exists already in the database, if so, return an error.
-	connection.query("SELECT * FROM customers WHERE email = 'sdblatz@gmail.com", function (err, result) {
-		if (result.length > 0) {
-			//sorry, this email is already taken!
+	//fetch the user by email and return it in json
+	var user = JSON.parse(req)
+	var email = JSON.parse(req).email
+	connection.query("SELECT * FROM customers WHERE email = email", function (err, result) {
+		if (result.length == 0) {
+			res.status(500).send({ success: false, error: "This email address doesn't exist." });
 
-			//set status 500 to show we have an error...
-			res.status(500).send({ success: false, error: "This email address is already taken." });
+		} else if (result.length == 1) {
+			var data {
+				success = true
+				name = result[0].name
+				email = result[0].email
+				password = result[0].password
+				prefersEmailUpdates = result[0].prefersEmailUpdates
+				postCount = result[0].postCount
+			}
+			res.send(JSON.stringify(data))
 
-
+		} else {
+			//more than one user?
 		}
 	});
-
 
 	var sql = "INSERT INTO User (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES ('Sawyer', 'sdblatz@gmail.com', 'password1', '', 'false', 0)";
 	connection.query(sql, function(err, result) {
