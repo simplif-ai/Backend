@@ -404,6 +404,43 @@ app.post('/profile', function(req, res) {
 });
 
 app.post('/editProfile', function(req, res) {
+	//update name
+	//update email
+	var user = req.body;
+	var email = user.email;
+
+	if (user.newEmail != null) {
+		//update email
+		console.log("Update email");
+		//  'UPDATE employees SET location = ? Where ID = ?',
+
+		connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+			}
+		});
+
+	} else {
+		console.log("email not updated");
+	}
+
+	if (user.newName != null) {
+		//update name
+		console.log("Update name");
+		connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
+			if (err) {
+				res.status(500).send({success: false, error: err})
+
+			}
+		});
+
+	} else {
+		console.log("name not updated");
+
+	}
+
+	res.status(200).send({success: true})
+
 
 });
 
