@@ -1,5 +1,5 @@
 /**
- * midlle ware to connect frontend with api for summarizer 
+ * midlle ware to connect frontend with api for summarizer
  * creates all dependencies and endpoints
  * Author: Lena Arafa
  * Date: 9/24/2017
@@ -15,6 +15,7 @@ const path = require('path');
 const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
+var jwt = require('jsonwebtoken');
 
 //setup database
 var connection = mysql.createConnection({
@@ -142,7 +143,7 @@ app.post('/mailto', function (req, res) {
     var mailOptions = {
         from: 'simplif.ai@gmail.com',
         to: email,
-        subject: 'Reset password to Simplif.ai', 
+        subject: 'Reset password to Simplif.ai',
         text: req.param.url
     }
 
@@ -154,7 +155,7 @@ app.post('/mailto', function (req, res) {
             console.log('Email sent: ' + req.param.url);
         }
     });
-    
+
 });
 
 
@@ -247,7 +248,7 @@ app.post('/deleteAccount', function(req,res) {
 						connection.query(sql, function(err, result) {
 							if (err) {
 								console.log("Couldn't delete summary");
-							} 
+							}
 						});
 
 						//delete the actual note:
@@ -255,7 +256,7 @@ app.post('/deleteAccount', function(req,res) {
 						connection.query(sql, function(err, result) {
 							if (err) {
 								console.log("Couldn't delete note");
-							} 
+							}
 						});
 
 						/*
@@ -293,7 +294,7 @@ app.post('/createAccount', function(req, res) {
 	var email = user.email
 	var password = user.password
 	var prefersEmailUpdates = user.prefersEmailUpdates
-	
+
 	//check if this email exists already in the database, if so, return an error.
 	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
 		if (err) {
@@ -351,8 +352,3 @@ app.post('/editProfile', function(req, res) {
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
-
-
-
-
-
