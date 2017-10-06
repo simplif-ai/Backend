@@ -247,9 +247,10 @@ app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
 	var user = req.body;
 	var email = user.email;
+	var password = user.password;
 	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
 		if (err) {
 			console.log("err");
 			res.status(500).send({ success: false, error: error });
