@@ -207,10 +207,9 @@ function setSigninStatus(isSignedIn) {
     }
   };
 
-
 //login endpoint
 //allows the user to login with google authentication
-app.post('/loginWithGoogle', function(req, res) {
+app.post('/loginToGoogle', function(req, res) {
 	if (GoogleAuth.isSignedIn.get()) {
 		//user is already signed in!
     } else {
@@ -293,6 +292,7 @@ app.post('/changePassword', function(req, res) {
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
 app.post('/resetPassword', function(req, res) {
 	//use mailer to send email to the email address passed in.
+
 
 });
 
