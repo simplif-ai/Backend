@@ -225,23 +225,42 @@ app.post('/login', function(req, res) {
 	var password = user.password;
 
 	connection.query("SELECT * FROM users WHERE email = email AND password = password", function (err, result) {
-		if err {
+		if (err) {
 			res.status(500).send({ success: false, error: error });
 		} else {
 			if (result.count == 0) {
 				//do JWT stuff
 				res.status(200).send({ success: true});
+			} else {
+				res.status(500).send({ success: true, error: "Username or password is incorrect."});
 			}
 		}
 	})
-
-
 })
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
+	var user = JSON.parse(req);
+	var email = user.email;
+	var newPassword = user.newPassword;
 
+	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		} else {
+			if (result.count == 0) {
+				var sql = "UPDATE users SET password = newPassword WHERE email = email";
+				connection.query(sql, function (err, result) {
+					if (err) {
+						res.status(500).send({ success: false, error: error });
+					} else {
+						res.status(200).send({ success: true});
+					}
+				})
+			}
+		}
+	})
 });
 
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
