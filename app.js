@@ -333,16 +333,6 @@ app.post('/deleteAccount', function(req,res) {
 								console.log("Couldn't delete note");
 							}
 						});
-
-						/*
-						connection.query("SELECT * FROM summaries WHERE noteID = result[i].idNote", function (err, result) {
-							if (err) {
-
-							} else {
-
-							}
-						})
-						*/
 					}
 
 					//all notes deleted, delete the actual user!
