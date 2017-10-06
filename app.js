@@ -65,6 +65,7 @@ app.get('/mocktext', function (req, res) {
 //is sent back to the user
 app.post('/sumarizertext', function (req, res) {
     //url subject to change once api is created
+    console.log('req.body', req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
         headers: {
@@ -82,6 +83,7 @@ app.post('/sumarizertext', function (req, res) {
         //sends it back to the summarizertext endpoint which would be the
         //body response to any request that posts a request to it
         //uses json to send a stringfied json object of the non-object data from api
+
         if (!error && response.statusCode === 200) {
           res.send(response.body);
         } else {
