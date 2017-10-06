@@ -96,10 +96,6 @@ app.post('/sumarizertext', function (req, res) {
     });
 });
 
-<<<<<<< Updated upstream
-=======
-
->>>>>>> Stashed changes
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
 app.post('/savetodb', function (req, res) {
