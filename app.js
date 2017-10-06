@@ -18,7 +18,7 @@ const nodemailer = require ('nodemailer');
 
 //setup database
 var connection = mysql.createConnection({
-    host: 'simplifai.caijj6vztwxw.us-east-2.rds.amazonaws.com',
+    host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
     user: 'admin',
     password: 'mGLPkLat3W^y9w[w',
     port: '3306'
@@ -169,7 +169,7 @@ app.post('/mailto', function (req, res) {
 
 
 /**
-**These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
+***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
 **/
 //Google authentication setup
 var GoogleAuth; // Google Auth object.
@@ -212,10 +212,13 @@ app.post('/loginWithGoogle', function(req, res) {
       // User is not signed in. Start Google auth flow.
       GoogleAuth.signIn();
     }
+
+    //return JWT token
 });
 
 app.post('/login', function(req, res) {
 	//login without google API
+	//email and password given
 })
 
 //this endpoint allows the user to change their password in the database.
@@ -233,39 +236,63 @@ app.post('/resetPassword', function(req, res) {
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
 	//deep delete the user data and all of the data it points to
-
+	var user = JSON.parse(req)
+	var email = user.email
 
 	//get the user ID from the email address:
-	connection.query("SELECT * FROM users WHERE email = 'sdblatz@gmail.com'", function (err, result) {
-    if (err) throw err;
-    console.log(result);
-    //now that we have the user, grab their ID and then query notes for their id...
-    var id = result[0].idUser; //should only be one user...
+	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		} else {
+			var id = result[0].idUser;
+			//query notes for all with this userID:
+			connection.query("SELECT * FROM notes WHERE userID = id", function (err, result) {
+				if (err) {
 
-    //get all of the notes we own:
+				} else {
+					for (var i = 0; i <result.length; i++) {
 
-    connection.query("SELECT * FROM notes WHERE userID = id", function (err, result) {
-    	//delete
-    });
+						//delete all the summaries:
+						var sql = "DELETE FROM summaries WHERE noteID = result[i].idNote";
+						connection.query(sql, function(err, result) {
+							if (err) {
+								console.log("Couldn't delete summary");
+							} 
+						});
 
+						//delete the actual note:
+						var sql = "DELETE FROM notes WHERE idNote = result[i].idNote";
+						connection.query(sql, function(err, result) {
+							if (err) {
+								console.log("Couldn't delete note");
+							} 
+						});
 
+						/*
+						connection.query("SELECT * FROM summaries WHERE noteID = result[i].idNote", function (err, result) {
+							if (err) {
+
+							} else {
+
+							}
+						})
+						*/
+					}
+
+					//all notes deleted, delete the actual user!
+					var sql = "DELETE FROM users WHERE idUser = id";
+					connection.query(sql, function(err, result) {
+							if (err) {
+								console.log("Couldn't delete note");
+							} else {
+								res.status(200).send({ success: true});
+							}
+					});
+				}
+    		});
+		}
   });
-	//delete all the summaries of notes we own
-
-	//delete all the notes we own
-
-	//delete the actual user
-
-	var sql = "DELETE FROM User WHERE email = 'sdblatz@gmail.com'";
-	connection.query(sql, function(err, result) {
-		if (err) throw err;
-		console.log("Deleted user!");
-
-	});
 });
-
-
-
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
@@ -279,6 +306,10 @@ app.post('/createAccount', function(req, res) {
 
 	//check if this email exists already in the database, if so, return an error.
 	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		}
+
 		if (result.length > 0) {
 			//sorry, this email is already taken!
 			console.log("Email address already taken.");
@@ -306,26 +337,20 @@ app.post('/profile', function(req, res) {
 			res.status(500).send({ success: false, error: "This email address doesn't exist." });
 
 		} else if (result.length == 1) {
-			var data {
-				success = true
-				name = result[0].name
-				email = result[0].email
-				password = result[0].password
-				prefersEmailUpdates = result[0].prefersEmailUpdates
-				postCount = result[0].postCount
+			var data = {
+				success: true,
+				name: result[0].name,
+				email: result[0].email,
+				password: result[0].password,
+				prefersEmailUpdates: result[0].prefersEmailUpdates,
+				postCount: result[0].postCount
 			}
 			res.send(JSON.stringify(data))
 
 		} else {
 			//more than one user?
+			console.log("More than one user found...");
 		}
-	});
-
-	var sql = "INSERT INTO User (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES ('Sawyer', 'sdblatz@gmail.com', 'password1', '', 'false', 0)";
-	connection.query(sql, function(err, result) {
-		if (err) throw err;
-		console.log("New user created!");
-
 	});
 });
 
