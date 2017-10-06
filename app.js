@@ -237,11 +237,11 @@ app.post('/login', function(req, res) {
 
 	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
 		if (err) {
-			res.status(500).send({ success: false, error: error });
+			res.status(500).send({ success: false, error: err });
 		} else {
 							console.log(result)
 			const payload = {
-      			admin: email 
+      			admin: email
     		};
 
 			var token = jwt.sign(payload, app.get('superSecret'), {
@@ -269,7 +269,7 @@ app.post('/changePassword', function(req, res) {
 	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
 		if (err) {
 			console.log("err");
-			res.status(500).send({ success: false, error: error });
+			res.status(500).send({ success: false, error: err });
 		} else {
 			console.log("Not err");
 			console.log(result);
@@ -354,7 +354,7 @@ app.post('/deleteAccount', function(req,res) {
 app.post('/createAccount', function(req, res) {
 
 	//res.status(500).send({success: false, body: req.body.name})
-
+  console.log('req', req.body);
 	var user = req.body
 	var name = user.name
 	var email = user.email
@@ -365,9 +365,9 @@ app.post('/createAccount', function(req, res) {
 	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		console.log("inside select");
 		if (err) {
-			res.status(500).send({ success: false, error: error });
+			res.status(500).send({ success: false, error: err });
 		}
-
+    console.log('result', result);
 		if (result.length > 0) {
 			//sorry, this email is already taken!
 			console.log("Email address already taken.");
