@@ -6,6 +6,7 @@
  */
 
 //List dependencies
+var config = require('./config');
 const express = require('express');
 const app = express();
 const parseurl = require('parseurl');
@@ -16,6 +17,9 @@ const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
 var jwt = require('jsonwebtoken');
+app.set('superSecret', config.secret); // secret variable
+
+
 //setup database
 var connection = mysql.createConnection({
     host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
@@ -91,19 +95,6 @@ app.post('/sumarizertext', function (req, res) {
         }
     });
 });
-
-//another request to get the saved version from the user of the summarizer text
-//and send it to db
-app.post('/savetodb', function(req, res) {
-    //sends to db
-        console.log('statusCode', response.statusCode);
-        if (!error && response.statusCode === 200) {
-            res.send(body);
-          } else {
-            res.send({ success: false, error: error });
-          }
-});
-
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
@@ -229,6 +220,12 @@ app.post('/loginWithGoogle', function(req, res) {
       GoogleAuth.signIn();
     }
 
+    var token = jwt.sign(payload, "secretString", {
+			          expiresIn: 60 * 60 * 24 // expires in 24 hours
+	});
+
+	res.status(200).send({ success: true, token: token});
+
     //return JWT token
 });
 
@@ -244,10 +241,17 @@ app.post('/login', function(req, res) {
 			res.status(500).send({ success: false, error: error });
 		} else {
 							console.log(result)
+			const payload = {
+      			admin: email 
+    		};
+
+			var token = jwt.sign(payload, app.get('superSecret'), {
+			          expiresIn: 60 * 60 * 24 // expires in 24 hours
+			 });
 
 			if (result.length == 1) {
 				//do JWT stuff
-				res.status(200).send({ success: true});
+				res.status(200).send({ success: true, token: token});
 			} else {
 				res.status(500).send({ success: true, error: "Username or password is incorrect."});
 			}
@@ -260,9 +264,10 @@ app.post('/changePassword', function(req, res) {
 	//talk to database here once Lena has imported it
 	var user = req.body;
 	var email = user.email;
+	var password = user.password;
 	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
 		if (err) {
 			console.log("err");
 			res.status(500).send({ success: false, error: error });
@@ -328,16 +333,6 @@ app.post('/deleteAccount', function(req,res) {
 								console.log("Couldn't delete note");
 							}
 						});
-
-						/*
-						connection.query("SELECT * FROM summaries WHERE noteID = result[i].idNote", function (err, result) {
-							if (err) {
-
-							} else {
-
-							}
-						})
-						*/
 					}
 
 					//all notes deleted, delete the actual user!
