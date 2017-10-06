@@ -6,6 +6,7 @@
  */
 
 //List dependencies
+var config = require('./config');
 const express = require('express');
 const app = express();
 const parseurl = require('parseurl');
@@ -16,6 +17,9 @@ const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
 var jwt = require('jsonwebtoken');
+app.set('superSecret', config.secret); // secret variable
+
+
 //setup database
 var connection = mysql.createConnection({
     host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
@@ -214,6 +218,12 @@ app.post('/loginWithGoogle', function(req, res) {
       GoogleAuth.signIn();
     }
 
+    var token = jwt.sign(payload, "secretString", {
+			          expiresIn: 60 * 60 * 24 // expires in 24 hours
+	});
+
+	res.status(200).send({ success: true, token: token});
+
     //return JWT token
 });
 
@@ -229,10 +239,17 @@ app.post('/login', function(req, res) {
 			res.status(500).send({ success: false, error: error });
 		} else {
 							console.log(result)
+			const payload = {
+      			admin: email 
+    		};
+
+			var token = jwt.sign(payload, app.get('superSecret'), {
+			          expiresIn: 60 * 60 * 24 // expires in 24 hours
+			 });
 
 			if (result.length == 1) {
 				//do JWT stuff
-				res.status(200).send({ success: true});
+				res.status(200).send({ success: true, token: token});
 			} else {
 				res.status(500).send({ success: true, error: "Username or password is incorrect."});
 			}
