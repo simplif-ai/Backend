@@ -16,13 +16,13 @@ const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
 var jwt = require('jsonwebtoken');
-
 //setup database
 var connection = mysql.createConnection({
     host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
     user: 'admin',
     password: 'mGLPkLat3W^y9w[w',
-    port: '3306'
+    port: '3306',
+    database : 'Simplifai_Database'
 });
 
 //parse application/JSON
@@ -332,16 +332,18 @@ app.post('/deleteAccount', function(req,res) {
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
-	console.log("req: " + req)
-	var user = JSON.parse(req)
-	console.log("user: " + user)
+
+	//res.status(500).send({success: false, body: req.body.name})
+
+	var user = req.body
 	var name = user.name
 	var email = user.email
 	var password = user.password
 	var prefersEmailUpdates = user.prefersEmailUpdates
 
 	//check if this email exists already in the database, if so, return an error.
-	connection.query("SELECT * FROM users WHERE email = email", function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		console.log("inside select");
 		if (err) {
 			res.status(500).send({ success: false, error: error });
 		}
@@ -349,10 +351,20 @@ app.post('/createAccount', function(req, res) {
 		if (result.length > 0) {
 			//sorry, this email is already taken!
 			console.log("Email address already taken.");
+			console.log("email collison: " + result[0].email);
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
-			var sql = "INSERT INTO users (name, email, password, feedback, prefersEmailUpdates, noteCount) VALUES (name, email, password, '', prefersEmailUpdates, 0)";
-			connection.query(sql, function(err, result) {
+			console.log("length 1");
+			var newUser = {
+				name: name,
+				email: email,
+				password: password,
+				feedback: '',
+				prefersEmailUpdates: prefersEmailUpdates,
+				noteCount: 0
+			}
+			connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
+				console.log("inside insert");
 				if (err) {
 					res.status(500).send({success: false, error: err})
 				} else {
