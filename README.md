@@ -58,6 +58,18 @@ prefersEmailUpdates: "0",
 postCount: "3"
 }
 
+### /loginToGoogle
+
+Sends:
+{
+
+sucess: "true"
+
+error: "Authentication failed" //optional
+
+token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+}
+
 ### /createAccount
 
 Receives:
