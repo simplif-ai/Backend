@@ -298,7 +298,7 @@ app.post('/resetPassword', function(req, res, next) {
    // console.log(req.body);
     var email = req.body.email;
     console.log("email " + email);
-    var url = 'https://localhost:8000/password-reset?email=' + email;
+    var url = 'http://localhost:3000/password-reset?email=' + email;
     var transporter = nodemailer.createTransport({
         service: 'GMAIL',
         auth: {
