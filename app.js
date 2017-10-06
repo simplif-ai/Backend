@@ -92,19 +92,6 @@ app.post('/sumarizertext', function (req, res) {
 
 //another request to get the saved version from the user of the summarizer text
 //and send it to db
-app.post('/savetodb', function(req, res) {
-    //sends to db
-        console.log('statusCode', response.statusCode);
-        if (!error && response.statusCode === 200) {
-            res.send(body);
-          } else {
-            res.send({ success: false, error: error });
-          }
-});
-
-
-//another request to get the saved version from the user of the summarizer text
-//and send it to db
 app.post('/savetodb', function (req, res) {
     connection.connect(function (err) {
         if (err) {
