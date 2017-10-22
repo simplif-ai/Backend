@@ -1,0 +1,21 @@
+branch-defaults:
+  default:
+    environment: Simplifai-env
+  deploytemp:
+    environment: Simplifai-env
+environment-defaults:
+  Simplifai-env:
+    branch: null
+    repository: null
+global:
+  application_name: simplif.ai
+  default_ec2_keyname: simplif.ai new
+  default_platform: Node.js
+  default_region: us-east-2
+  include_git_submodules: true
+  instance_profile: null
+  platform_name: null
+  platform_version: null
+  profile: eb-cli
+  sc: git
+  workspace_type: Application

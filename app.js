@@ -16,6 +16,7 @@ const path = require('path');
 const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
+
 var jwt = require('jsonwebtoken');
 app.set('superSecret', config.secret); // secret variable
 
@@ -29,8 +30,17 @@ var connection = mysql.createConnection({
     database : 'Simplifai_Database'
 });
 
-//parse application/JSON
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+
+// uncomment after placing your favicon in /public
+//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+//app.use(logger('dev'));
 app.use(bodyparser.json());
+app.use(bodyparser.urlencoded({ extended: false }));
+//app.use(cookieParser());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // enable cors
 app.use(function(req, res, next) {
@@ -39,8 +49,10 @@ app.use(function(req, res, next) {
   next();
 });
 
-//User endpoint
-//Forget passowrd mailto endpoint
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname, '/index.html'));
+});
+
 
 
 //this is a mock api to test the fuctionality of the
@@ -149,6 +161,28 @@ app.post('/mailto', function (req, res) {
 
      //send email
     //text has the paramter url of connecting to the page for resetting password
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'simplif.ai@gmail.com',
+          pass: 'simplif.ai2017'
+        }
+      });
+    var mailOptions = {
+        from: 'simplif.ai@gmail.com',
+        to: email,
+        subject: 'Reset password to Simplif.ai',
+        text: req.param.url
+    }
+
+    transporter.sendMail(mailOptions, function(error, infor){
+        if(error) {
+            console.log('error sending email for resetting password');
+        }
+        else {
+            console.log('Email sent: ' + req.param.url);
+        }
+    });
 
 });
 
@@ -185,7 +219,7 @@ function setSigninStatus(isSignedIn) {
     } else {
       //let the user know they're not authorized
     }
-  };
+};
 
 //login endpoint
 //allows the user to login with google authentication
@@ -476,6 +510,27 @@ app.post('/editProfile', function(req, res) {
 
 });
 
+
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  var err = new Error('Not Found');
+  err.status = 404;
+  next(err);
+});
+
+// error handler
+app.use(function(err, req, res, next) {
+  // set locals, only providing error in development
+  res.locals.message = err.message;
+  res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+  // render the error page
+  res.status(err.status || 500);
+  res.render('error');
+});
+
+module.exports = app;
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
