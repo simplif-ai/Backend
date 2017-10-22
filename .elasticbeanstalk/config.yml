@@ -1,6 +1,8 @@
 branch-defaults:
   default:
     environment: Simplifai-env
+  deploytemp:
+    environment: Simplifai-env
 environment-defaults:
   Simplifai-env:
     branch: null
@@ -15,5 +17,5 @@ global:
   platform_name: null
   platform_version: null
   profile: eb-cli
-  sc: null
+  sc: git
   workspace_type: Application

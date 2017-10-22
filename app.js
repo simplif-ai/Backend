@@ -1,3 +1,10 @@
+/**
+ * midlle ware to connect frontend with api for summarizer
+ * creates all dependencies and endpoints
+ * Author: Lena Arafa
+ * Date: 9/24/2017
+ */
+
 //List dependencies
 var config = require('./config');
 const express = require('express');
@@ -64,11 +71,10 @@ app.get('/mocktext', function (req, res) {
     }
    // res.send(options.body);
     request.post(options, function (error, response, body) {
-        console.log(body);
+        //console.log(body);
         res.send(JSON.parse(body));
     });
 });
-
 
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
@@ -155,6 +161,28 @@ app.post('/mailto', function (req, res) {
 
      //send email
     //text has the paramter url of connecting to the page for resetting password
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'simplif.ai@gmail.com',
+          pass: 'simplif.ai2017'
+        }
+      });
+    var mailOptions = {
+        from: 'simplif.ai@gmail.com',
+        to: email,
+        subject: 'Reset password to Simplif.ai',
+        text: req.param.url
+    }
+
+    transporter.sendMail(mailOptions, function(error, infor){
+        if(error) {
+            console.log('error sending email for resetting password');
+        }
+        else {
+            console.log('Email sent: ' + req.param.url);
+        }
+    });
 
 });
 
@@ -505,3 +533,4 @@ app.use(function(err, req, res, next) {
 module.exports = app;
 
 app.listen('8000');
+console.log('Listening on port ' + 8000 + '...');
