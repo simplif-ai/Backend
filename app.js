@@ -23,11 +23,11 @@ app.set('superSecret', config.secret); // secret variable
 
 //setup database
 var connection = mysql.createConnection({
-    host: 'simplifaidb.caijj6vztwxw.us-east-2.rds.amazonaws.com',
-    user: 'admin',
-    password: 'mGLPkLat3W^y9w[w',
-    port: '3306',
-    database : 'Simplifai_Database'
+    host: process.env.RDS_HOSTNAME,
+    user: process.env.RDS_USERNAME,
+    password: process.env.RDS_PASSWORD,
+    port: process.env.RDS_PORT,
+    database : process.env.RDS_DB_NAME
 });
 
 // view engine setup
