@@ -6,7 +6,7 @@
  */
 
 //List dependencies
-var bcrypt = require('bcrypt');
+//var bcrypt = require('bcrypt');
 const saltRounds = 10;
 var config = require('./config');
 const express = require('express');
@@ -428,7 +428,7 @@ app.post('/createAccount', function(req, res) {
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
 
-      bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+      //bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
       // Store hash in your password DB.
         var newUser = {
           name: name,
@@ -446,7 +446,7 @@ app.post('/createAccount', function(req, res) {
             res.status(200).send({success: true});
           }
         });
-      });
+      //});
 			
 		}
 	});
