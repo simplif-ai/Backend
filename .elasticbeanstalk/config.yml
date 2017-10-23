@@ -1,4 +1,6 @@
 branch-defaults:
+  Hashing-Passwords:
+    environment: Simplifai-env
   Slackbot:
     environment: Simplifai-env
   default:
