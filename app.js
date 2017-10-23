@@ -76,9 +76,10 @@ app.get('/mocktext', function (req, res) {
     });
 });
 
-//Text endpoint; text sumbitted by user is handled here
-//It is then sent to the summarizer api and the data received
-//is sent back to the user
+/**Text endpoint; text sumbitted by user is handled here
+**It is then sent to the summarizer api and the data received
+**is sent back to the user
+**/
 app.post('/sumarizertext', function (req, res) {
     //url subject to change once api is created
     console.log('req.body', req.body);
@@ -94,12 +95,12 @@ app.post('/sumarizertext', function (req, res) {
 
     //send the text received from user to api of summarizer
     //get for testing reasons, use post when using summarizer api url
-    request.post(summarizerApi, options, function(error, response, body) {
+    request.post(summarizerApi, options, function (error, response, body) {
         //recives data from summarizerAPI
         //sends it back to the summarizertext endpoint which would be the
         //body response to any request that posts a request to it
         //uses json to send a stringfied json object of the non-object data from api
-
+        console.log('statusCode',response.statusCode);
         if (!error && response.statusCode === 200) {
           res.send(response.body);
         } else {
@@ -108,84 +109,70 @@ app.post('/sumarizertext', function (req, res) {
     });
 });
 
-//another request to get the saved version from the user of the summarizer text
-//and send it to db
+/**another request to get the saved version from the user of the summarizer text
+**and send it to db
+**the body contains user's email, text: {email, text}
+**/
 app.post('/savetodb', function (req, res) {
-    connection.connect(function (err) {
+    /*connection.connect(function (err) {
         if (err) {
             console.error('Database connection failed: ' + err.stack);
             return;
-        }
+        }*/
         console.log('Connected to database.');
-        var sql = "ALTER TABLE User ADD COLUMN summary STRING AUTO_INCREMENT PRIMARY KEY";
-        connection.query(sql, function(err, result){
-            if(err) {
-                console.error('Error with adding summary column');
-            } else {
-            	console.log('Table Altered');
-            }
-
-            sql = "INSERT INTO Users (summary) VALUES ("+req.body+")";
+		console.log("body: ", req.body);
+		var body = req.body;
+		var userEmail = body.email;
+		var text = body.text;
+		var name = text.substring(0, 15);
+		var datetime = new Date();
+		
+		//get full text, summary, 
+        connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
+            if (err) {
+				res.status(500).send({ success: false, error: err });
+			} else {
+				console.log("Obtained userId from user email");
+				var id = result[0].idUser;
+				console.log("userId:", id);
+				//Add a column for new summarited text in note
+				//noteText is when a request made to save user's notes
+				var note = {
+					name: name,
+					dateRecorded: datetime,
+					noteText: null,
+					userID: id
+				};
+				console.log("note: ", note);
+				connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+					console.log("goes in here");
+					if (err) {
+						res.status(500).send({ success: false, error: err });
+					} else {
+						console.log("created row in the notes table");
+						//add a summary row for the new summarized text
+						console.log("noteId:" + result.insertId);
+						var idNote = result.insertId;
+						var newSumm = {
+							summarizedText: text,
+							noteId: idNote
+						}
+						
+						connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
+							console.log("inside insert");
+							if (err) {
+								res.status(500).send({success: false, error: err})
+							} else {
+								res.status(200).send({success: true});
+							}
+						});
+					}
+				});
+			}
         });
-        connection.query(sql, function(err, result){
-            if(err) {
-                console.error('Error with instering summary in table');
-            }
-            console.log('summary record inserted');
-        });
-    });
-    connection.end();
+    //});
+    //connection.end();
 });
-
-//request to receive forget password post and send an email to user
-app.post('/mailto', function (req, res) {
-    //get email of user from db
-    //receive email and link to reset?
-    var email;
-    // connection.connect(function (err) {
-    //     if (err) {
-    //         console.error('Database connection failed: ' + err.stack);
-    //         return;
-    //     }
-    //     console.log('Connected to database.');
-    //         sql = "SELECT email FROM Users where idUser = ";
-    //     connection.query(sql, function(err, result, fields){
-    //         if(err) {
-    //             console.error('Error with retrieving email from table');
-    //         }
-    //         email = result;
-    //         console.log('email retreived');
-    //     })
-    // })
-    // connection.end();
-
-     //send email
-    //text has the paramter url of connecting to the page for resetting password
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: 'simplif.ai@gmail.com',
-          pass: 'simplif.ai2017'
-        }
-      });
-    var mailOptions = {
-        from: 'simplif.ai@gmail.com',
-        to: email,
-        subject: 'Reset password to Simplif.ai',
-        text: req.param.url
-    }
-
-    transporter.sendMail(mailOptions, function(error, infor){
-        if(error) {
-            console.log('error sending email for resetting password');
-        }
-        else {
-            console.log('Email sent: ' + req.param.url);
-        }
-    });
-
-});
-
 
 /**
 ***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
