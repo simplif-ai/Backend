@@ -51,8 +51,7 @@ app.use(function(req, res, next) {
 
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, '/index.html'));
-});
-
+})
 
 
 //this is a mock api to test the fuctionality of the
@@ -77,7 +76,8 @@ app.get('/mocktext', function (req, res) {
 });
 
 //Slackbot endpoint
-app.post('/slackbot', function (req, res) {
+
+app.post('/slack/events', function (req, res) {
   res.send(req.body.challenge);
 });
 
@@ -85,7 +85,7 @@ app.post('/slackbot', function (req, res) {
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
 //is sent back to the user
-app.post('/sumarizertext', function (req, res) {
+app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
     console.log('req.body', req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
