@@ -78,7 +78,7 @@ app.get('/mocktext', function (req, res) {
 
 //Slackbot endpoint
 app.post('/slackbot', function (req, res) {
-  res.send({ challenge: req.body.challenge});
+  res.send(req.body.challenge);
 });
 
 

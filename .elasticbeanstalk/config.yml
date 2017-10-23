@@ -1,4 +1,6 @@
 branch-defaults:
+  Slackbot:
+    environment: Simplifai-env
   default:
     environment: Simplifai-env
   deploytemp:
