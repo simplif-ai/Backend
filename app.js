@@ -255,38 +255,42 @@ app.post('/login', function(req, res) {
 	var email = user.email;
 	var password = user.password;
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
-		if (err) {
-			res.status(500).send({ success: false, error: err });
-		} else {
-							console.log(result)
-			const payload = {
-      			admin: email
-    		};
+  //check hashed password against database:
 
-			var token = jwt.sign(payload, app.get('superSecret'), {
-			          expiresIn: 60 * 60 * 24 // expires in 24 hours
-			 });
+  bcrypt.hash(password, saltRounds, function(err, hash) {
+    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hash], function (err, result) {
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      } else {
+        console.log(result)
+        const payload = {
+              admin: email
+          };
 
-			if (result.length == 1) {
-				//do JWT stuff
-				res.status(200).send({ success: true, token: token});
-			} else {
-				res.status(500).send({ success: false, error: "Username or password is incorrect."});
-			}
-		}
-	})
+        var token = jwt.sign(payload, app.get('superSecret'), {
+                  expiresIn: 60 * 60 * 24 // expires in 24 hours
+         });
+
+        if (result.length == 1) {
+          //do JWT stuff
+          res.status(200).send({ success: true, token: token});
+        } else {
+          res.status(500).send({ success: false, error: "Username or password is incorrect."});
+        }
+      }
+    })
+  });
+	
 })
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
-	//talk to database here once Lena has imported it
 	var user = req.body;
 	var email = user.email;
 	var password = user.password;
 	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (err) {
 			console.log("err");
 			res.status(500).send({ success: false, error: err });
@@ -295,15 +299,17 @@ app.post('/changePassword', function(req, res) {
 			console.log(result);
 			if (result.length == 1) {
 				console.log("count is 1");
-				connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
-					if (err) {
-						console.log("err 2");
-						res.status(500).send({ success: false, error: error });
-					} else {
-						console.log("Success!");
-						res.status(200).send({ success: true});
-					}
-				})
+        bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+          connection.query("UPDATE users SET password = ? WHERE email = ?", [hash, email], function (err, result) {
+            if (err) {
+              console.log("err 2");
+              res.status(500).send({ success: false, error: error });
+            } else {
+              console.log("Success!");
+              res.status(200).send({ success: true});
+            }
+          })
+        });
 			} else {
 				res.status(500).send({ success: false, error: "User not found." });
 			}
@@ -428,7 +434,7 @@ app.post('/createAccount', function(req, res) {
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
 
-      bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+      bcrypt.hash(password, saltRounds, function(err, hash) {
       // Store hash in your password DB.
         var newUser = {
           name: name,
