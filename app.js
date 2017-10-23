@@ -6,6 +6,8 @@
  */
 
 //List dependencies
+var bcrypt = require('bcrypt');
+const saltRounds = 10;
 var config = require('./config');
 const express = require('express');
 const app = express();
@@ -425,23 +427,27 @@ app.post('/createAccount', function(req, res) {
 			console.log("email collison: " + result[0].email);
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
-			console.log("length 1");
-			var newUser = {
-				name: name,
-				email: email,
-				password: password,
-				feedback: '',
-				prefersEmailUpdates: prefersEmailUpdates,
-				noteCount: 0
-			}
-			connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
-				console.log("inside insert");
-				if (err) {
-					res.status(500).send({success: false, error: err})
-				} else {
-					res.status(200).send({success: true});
-				}
-			});
+
+      bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+      // Store hash in your password DB.
+        var newUser = {
+          name: name,
+          email: email,
+          password: hash,
+          feedback: '',
+          prefersEmailUpdates: prefersEmailUpdates,
+          noteCount: 0
+        }
+        connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
+          console.log("inside insert");
+          if (err) {
+            res.status(500).send({success: false, error: err})
+          } else {
+            res.status(200).send({success: true});
+          }
+        });
+      });
+			
 		}
 	});
 });
