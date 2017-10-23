@@ -1,5 +1,4 @@
 require('dotenv').config();
-
 const express = require('express');
 const bodyParser = require('body-parser');
 const WebClient = require('@slack/client').WebClient;
@@ -10,12 +9,11 @@ const bot = new WebClient('xoxb-260785911174-IPG6sDxhKiQ8nm1T6yxZqm1J');
 
 let channel;
 let botID;
-const PORT = 4390;
+const PORT = 8000;
 const app = express();
 var request = require('request');
 
-
-app.use('/slackbot', slackEvents.expressMiddleware());
+app.use('/slack/events', slackEvents.expressMiddleware());
 
 slackEvents.on('error', console.error);
 
@@ -39,12 +37,9 @@ app.listen(PORT, function() {
 });
 
 //make a call to the summarizer API:
-
-
-
 function getSummary() {
 	request.post(
-	    'http://simplif-ai-backend.us-east-2.elasticbeanstalk.com/sumarizertext',
+	    'http://simplif-ai-backend.us-east-2.elasticbeanstalk.com/summarizertext',
 	    { json: { text: 'This is a test. A test of the summary. Is it working?' } },
 	    function (error, response, body) {
 	        if (!error && response.statusCode == 200) {
