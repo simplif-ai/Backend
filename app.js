@@ -76,6 +76,12 @@ app.get('/mocktext', function (req, res) {
     });
 });
 
+//Slackbot endpoint
+app.post('/slackbot', function (req, res) {
+  res.send({ challenge: req.body.challenge});
+});
+
+
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
 //is sent back to the user
