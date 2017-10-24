@@ -6,6 +6,9 @@
  */
 
 //List dependencies
+//var bcrypt = require('bcrypt');
+//const saltRounds = 10;
+
 var config = require('./config');
 const express = require('express');
 const app = express();
@@ -51,8 +54,7 @@ app.use(function(req, res, next) {
 
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, '/index.html'));
-});
-
+})
 
 
 //this is a mock api to test the fuctionality of the
@@ -76,11 +78,17 @@ app.get('/mocktext', function (req, res) {
     });
 });
 
-/**Text endpoint; text sumbitted by user is handled here
-**It is then sent to the summarizer api and the data received
-**is sent back to the user
-**/
-app.post('/sumarizertext', function (req, res) {
+//Slackbot endpoint
+
+app.post('/slack/events', function (req, res) {
+  res.send(req.body.challenge);
+});
+
+
+//Text endpoint; text sumbitted by user is handled here
+//It is then sent to the summarizer api and the data received
+//is sent back to the user
+app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
     console.log('req.body', req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
@@ -121,14 +129,14 @@ app.post('/saveSum', function (req, res) {
             return;
         }*/
         console.log('Connected to database.');
-		console.log("body: ", req.body);
-		var body = req.body;
-		var userEmail = body.email;
-		var text = body.text;
-		var name = text.substring(0, 15);
-		var datetime = new Date();
-		
-		//get full text, summary, 
+    console.log("body: ", req.body);
+    var body = req.body;
+    var userEmail = body.email;
+    var text = body.text;
+    var name = text.substring(0, 15);
+    var datetime = new Date();
+    
+    //get full text, summary, 
         connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
             if (err) {
 				res.status(500).send({ success: false, error: err });
@@ -208,7 +216,7 @@ app.post('/deleteSum', function(req, res){
 });
 
 /**
-***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
+*** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
 **/
 //Google authentication setup
 var GoogleAuth; // Google Auth object.
@@ -244,83 +252,102 @@ function setSigninStatus(isSignedIn) {
 //login endpoint
 //allows the user to login with google authentication
 app.post('/loginToGoogle', function(req, res) {
-	if (GoogleAuth.isSignedIn.get()) {
-		//user is already signed in!
+  if (GoogleAuth.isSignedIn.get()) {
+    //user is already signed in!
     } else {
       // User is not signed in. Start Google auth flow.
       GoogleAuth.signIn();
     }
 
     var token = jwt.sign(payload, "secretString", {
-			          expiresIn: 60 * 60 * 24 // expires in 24 hours
-	});
+                expiresIn: 60 * 60 * 24 // expires in 24 hours
+  });
 
-	res.status(200).send({ success: true, token: token});
+  res.status(200).send({ success: true, token: token});
 
     //return JWT token
 });
 
 app.post('/login', function(req, res) {
-	//login without google API
-	//email and password given
-	var user = req.body;
-	var email = user.email;
-	var password = user.password;
+  //login without google API
+  //email and password given
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
-		if (err) {
-			res.status(500).send({ success: false, error: err });
-		} else {
-							console.log(result)
-			const payload = {
-      			admin: email
-    		};
+  var email = user.email;
+  var password = user.password;
 
-			var token = jwt.sign(payload, app.get('superSecret'), {
-			          expiresIn: 60 * 60 * 24 // expires in 24 hours
-			 });
+  var hashedPassword = hash(password);
 
-			if (result.length == 1) {
-				//do JWT stuff
-				res.status(200).send({ success: true, token: token});
-			} else {
-				res.status(500).send({ success: false, error: "Username or password is incorrect."});
-			}
-		}
-	})
-})
+  //scrypt.kdf(password, )
+  //check hashed password against database:
+    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      } else {
+        console.log(result)
+        const payload = {
+              admin: email
+          };
+
+        var token = jwt.sign(payload, app.get('superSecret'), {
+                  expiresIn: 60 * 60 * 24 // expires in 24 hours
+         });
+
+        if (result.length == 1) {
+          //do JWT stuff
+          res.status(200).send({ success: true, token: token});
+        } else {
+          res.status(500).send({ success: false, error: "Username or password is incorrect."});
+        }
+      }
+    })
+  
+});
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
-	//talk to database here once Lena has imported it
-	var user = req.body;
-	var email = user.email;
-	var password = user.password;
-	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
-		if (err) {
-			console.log("err");
-			res.status(500).send({ success: false, error: err });
-		} else {
-			console.log("Not err");
-			console.log(result);
-			if (result.length == 1) {
-				console.log("count is 1");
-				connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
-					if (err) {
-						console.log("err 2");
-						res.status(500).send({ success: false, error: error });
-					} else {
-						console.log("Success!");
-						res.status(200).send({ success: true});
-					}
-				})
-			} else {
-				res.status(500).send({ success: false, error: "User not found." });
-			}
-		}
-	})
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+
+  var email = user.email;
+  var password = user.password;
+  var newPassword = user.newPassword;
+
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    if (err) {
+      console.log("err");
+      res.status(500).send({ success: false, error: err });
+    } else {
+      console.log("Not err");
+      console.log(result);
+      if (result.length == 1) {
+        console.log("count is 1");
+        //bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+        var hashedPassword = hash(password);
+
+          connection.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], function (err, result) {
+            if (err) {
+              console.log("err 2");
+              res.status(500).send({ success: false, error: error });
+            } else {
+              console.log("Success!");
+              res.status(200).send({ success: true});
+            }
+          })
+        //});
+      } else {
+        res.status(500).send({ success: false, error: "User not found." });
+      }
+    }
+  })
 });
 
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
@@ -328,8 +355,12 @@ app.post('/resetPassword', function(req, res, next) {
     //use mailer to send email to the email address passed in.
     //console.log(req);
    // console.log(req.body);
-    var email = req.body.email;
-    console.log("email " + email);
+    try {
+      var user = req.body;
+    } catch (error) {
+      res.status(500).send({ success: false, error: err });
+    }
+    var email = user.email;
     var url = 'http://localhost:3000/password-reset?email=' + email;
     var transporter = nodemailer.createTransport({
         service: 'GMAIL',
@@ -418,119 +449,147 @@ app.post('/deleteAccount', function(req,res) {
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
 
-	//res.status(500).send({success: false, body: req.body.name})
-  console.log('req', req.body);
-	var user = req.body
-	var name = user.name
-	var email = user.email
-	var password = user.password
-	var prefersEmailUpdates = user.prefersEmailUpdates
+  //res.status(500).send({success: false, body: req.body.name})
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var name = user.name
+  var email = user.email
+  var password = user.password
+  var prefersEmailUpdates = user.prefersEmailUpdates
+  var hashedPassword = hash(password);
 
-	//check if this email exists already in the database, if so, return an error.
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		console.log("inside select");
-		if (err) {
-			res.status(500).send({ success: false, error: err });
-		}
+  //check if this email exists already in the database, if so, return an error.
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    console.log("inside select");
+    if (err) {
+      res.status(500).send({ success: false, error: err });
+    }
     console.log('result', result);
-		if (result.length > 0) {
-			//sorry, this email is already taken!
-			console.log("Email address already taken.");
-			console.log("email collison: " + result[0].email);
-			res.status(500).send({ success: false, error: "This email address is already taken." });
-		} else {
-			console.log("length 1");
-			var newUser = {
-				name: name,
-				email: email,
-				password: password,
-				feedback: '',
-				prefersEmailUpdates: prefersEmailUpdates,
-				noteCount: 0
-			}
-			connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
-				console.log("inside insert");
-				if (err) {
-					res.status(500).send({success: false, error: err})
-				} else {
-					res.status(200).send({success: true});
-				}
-			});
-		}
-	});
+    if (result.length > 0) {
+      //sorry, this email is already taken!
+      console.log("Email address already taken.");
+      console.log("email collison: " + result[0].email);
+      res.status(500).send({ success: false, error: "This email address is already taken." });
+    } else {
+
+      //bcrypt.hash(password, saltRounds, function(err, password) {
+      // Store hash in your password DB.
+        var newUser = {
+          name: name,
+          email: email,
+          password: hashedPassword,
+          feedback: '',
+          prefersEmailUpdates: prefersEmailUpdates,
+          noteCount: 0
+        }
+        connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
+          console.log("inside insert");
+          if (err) {
+            res.status(500).send({success: false, error: err})
+          } else {
+            res.status(200).send({success: true});
+          }
+        });
+      //});
+      
+    }
+  });
 });
 
 app.post('/profile', function(req, res) {
 
-	//fetch the user by email and return it in json
-	var user = req.body;
-	var email = user.email;
+  //fetch the user by email and return it in json
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var email = user.email;
   console.log('req.body', req.body);
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		if (result.length == 0) {
-			res.status(500).send({ success: false, error: "This email address doesn't exist." });
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    if (result.length == 0) {
+      res.status(500).send({ success: false, error: "This email address doesn't exist." });
 
-		} else if (result.length == 1) {
-			var data = {
-				success: true,
-				name: result[0].name,
-				email: result[0].email,
-				password: result[0].password,
-				prefersEmailUpdates: result[0].prefersEmailUpdates,
-				postCount: result[0].postCount
-			}
+    } else if (result.length == 1) {
+      var data = {
+        success: true,
+        name: result[0].name,
+        email: result[0].email,
+        //password: result[0].password,
+        prefersEmailUpdates: result[0].prefersEmailUpdates,
+        postCount: result[0].postCount
+      }
 
-			res.send(data)
+      res.send(data)
 
-		} else {
-			//more than one user?
-			console.log("More than one user found...");
-		}
-	});
+    } else {
+      //more than one user?
+      console.log("More than one user found...");
+    }
+  });
 });
 
 app.post('/editProfile', function(req, res) {
-	//update name
-	//update email
-	var user = req.body;
-	var email = user.email;
+  //update name
+  //update email
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var email = user.email;
 
-	if (user.newEmail != null) {
-		//update email
-		console.log("Update email");
-		//  'UPDATE employees SET location = ? Where ID = ?',
+  if (user.newEmail != null) {
+    //update email
+    console.log("Update email");
+    //  'UPDATE employees SET location = ? Where ID = ?',
 
-		connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
-			if (err) {
-				res.status(500).send({success: false, error: err})
-			}
-		});
+    connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
+      if (err) {
+        res.status(500).send({success: false, error: err})
+      }
+    });
 
-	} else {
-		console.log("email not updated");
-	}
+  } else {
+    console.log("email not updated");
+  }
 
-	if (user.newName != null) {
-		//update name
-		console.log("Update name");
-		connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
-			if (err) {
-				res.status(500).send({success: false, error: err})
+  if (user.newName != null) {
+    //update name
+    console.log("Update name");
+    connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
+      if (err) {
+        res.status(500).send({success: false, error: err})
 
-			}
-		});
+      }
+    });
 
-	} else {
-		console.log("name not updated");
+  } else {
+    console.log("name not updated");
 
-	}
+  }
 
-	res.status(200).send({success: true})
+  res.status(200).send({success: true})
 
 
 });
 
+function hash(str) {
+  var hash = 5381,
+      i    = str.length;
 
+  while(i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+
+  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+   * integers. Since we want the results to be always positive, convert the
+   * signed int to an unsigned by doing an unsigned bitshift. */
+  return hash >>> 0;
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -554,3 +613,5 @@ module.exports = app;
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
+
+
