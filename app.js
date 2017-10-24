@@ -6,6 +6,9 @@
  */
 
 //List dependencies
+//var bcrypt = require('bcrypt');
+//const saltRounds = 10;
+
 var config = require('./config');
 const express = require('express');
 const app = express();
@@ -51,8 +54,7 @@ app.use(function(req, res, next) {
 
 app.get('/', function(req, res) {
     res.sendFile(path.join(__dirname, '/index.html'));
-});
-
+})
 
 
 //this is a mock api to test the fuctionality of the
@@ -76,11 +78,17 @@ app.get('/mocktext', function (req, res) {
     });
 });
 
-/**Text endpoint; text sumbitted by user is handled here
-**It is then sent to the summarizer api and the data received
-**is sent back to the user
-**/
-app.post('/sumarizertext', function (req, res) {
+//Slackbot endpoint
+
+app.post('/slack/events', function (req, res) {
+  res.send(req.body.challenge);
+});
+
+
+//Text endpoint; text sumbitted by user is handled here
+//It is then sent to the summarizer api and the data received
+//is sent back to the user
+app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
     console.log('req.body', req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
@@ -234,38 +242,42 @@ app.post('/login', function(req, res) {
 	var email = user.email;
 	var password = user.password;
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
-		if (err) {
-			res.status(500).send({ success: false, error: err });
-		} else {
-							console.log(result)
-			const payload = {
-      			admin: email
-    		};
+  var hashedPassword = hash(password);
 
-			var token = jwt.sign(payload, app.get('superSecret'), {
-			          expiresIn: 60 * 60 * 24 // expires in 24 hours
-			 });
+  //scrypt.kdf(password, )
+  //check hashed password against database:
+    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      } else {
+        console.log(result)
+        const payload = {
+              admin: email
+          };
 
-			if (result.length == 1) {
-				//do JWT stuff
-				res.status(200).send({ success: true, token: token});
-			} else {
-				res.status(500).send({ success: false, error: "Username or password is incorrect."});
-			}
-		}
-	})
-})
+        var token = jwt.sign(payload, app.get('superSecret'), {
+                  expiresIn: 60 * 60 * 24 // expires in 24 hours
+         });
+
+        if (result.length == 1) {
+          //do JWT stuff
+          res.status(200).send({ success: true, token: token});
+        } else {
+          res.status(500).send({ success: false, error: "Username or password is incorrect."});
+        }
+      }
+    })
+	
+});
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
-	//talk to database here once Lena has imported it
 	var user = req.body;
 	var email = user.email;
 	var password = user.password;
 	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
 		if (err) {
 			console.log("err");
 			res.status(500).send({ success: false, error: err });
@@ -274,15 +286,19 @@ app.post('/changePassword', function(req, res) {
 			console.log(result);
 			if (result.length == 1) {
 				console.log("count is 1");
-				connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
-					if (err) {
-						console.log("err 2");
-						res.status(500).send({ success: false, error: error });
-					} else {
-						console.log("Success!");
-						res.status(200).send({ success: true});
-					}
-				})
+        //bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+        var hashedPassword = hash(password);
+
+          connection.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], function (err, result) {
+            if (err) {
+              console.log("err 2");
+              res.status(500).send({ success: false, error: error });
+            } else {
+              console.log("Success!");
+              res.status(200).send({ success: true});
+            }
+          })
+        //});
 			} else {
 				res.status(500).send({ success: false, error: "User not found." });
 			}
@@ -392,6 +408,7 @@ app.post('/createAccount', function(req, res) {
 	var email = user.email
 	var password = user.password
 	var prefersEmailUpdates = user.prefersEmailUpdates
+  var hashedPassword = hash(password);
 
 	//check if this email exists already in the database, if so, return an error.
 	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
@@ -406,23 +423,27 @@ app.post('/createAccount', function(req, res) {
 			console.log("email collison: " + result[0].email);
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
-			console.log("length 1");
-			var newUser = {
-				name: name,
-				email: email,
-				password: password,
-				feedback: '',
-				prefersEmailUpdates: prefersEmailUpdates,
-				noteCount: 0
-			}
-			connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
-				console.log("inside insert");
-				if (err) {
-					res.status(500).send({success: false, error: err})
-				} else {
-					res.status(200).send({success: true});
-				}
-			});
+
+      //bcrypt.hash(password, saltRounds, function(err, password) {
+      // Store hash in your password DB.
+        var newUser = {
+          name: name,
+          email: email,
+          password: hashedPassword,
+          feedback: '',
+          prefersEmailUpdates: prefersEmailUpdates,
+          noteCount: 0
+        }
+        connection.query('INSERT INTO users SET ?', newUser, function(err, result) {
+          console.log("inside insert");
+          if (err) {
+            res.status(500).send({success: false, error: err})
+          } else {
+            res.status(200).send({success: true});
+          }
+        });
+      //});
+			
 		}
 	});
 });
@@ -442,7 +463,7 @@ app.post('/profile', function(req, res) {
 				success: true,
 				name: result[0].name,
 				email: result[0].email,
-				password: result[0].password,
+				//password: result[0].password,
 				prefersEmailUpdates: result[0].prefersEmailUpdates,
 				postCount: result[0].postCount
 			}
@@ -497,7 +518,19 @@ app.post('/editProfile', function(req, res) {
 
 });
 
+function hash(str) {
+  var hash = 5381,
+      i    = str.length;
 
+  while(i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+
+  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+   * integers. Since we want the results to be always positive, convert the
+   * signed int to an unsigned by doing an unsigned bitshift. */
+  return hash >>> 0;
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -521,3 +554,5 @@ module.exports = app;
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
+
+
