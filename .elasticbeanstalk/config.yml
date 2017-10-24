@@ -1,4 +1,6 @@
 branch-defaults:
+  dbUpdateDeleteSum:
+    environment: Simplifai-env
   Hashing-Passwords:
     environment: Simplifai-env
   Slackbot:

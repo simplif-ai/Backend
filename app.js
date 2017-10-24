@@ -119,6 +119,7 @@ app.post('/summarizertext', function (req, res) {
 
 /**another request to get the saved version from the user of the summarizer text
 **and send it to db
+**could send noteID in response here if needed for frontend?
 **the body contains user's email, text: {email, text}
 **/
 app.post('/saveSum', function (req, res) {
@@ -138,50 +139,81 @@ app.post('/saveSum', function (req, res) {
     //get full text, summary, 
         connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
             if (err) {
-        res.status(500).send({ success: false, error: err });
-      } else {
-        console.log("Obtained userId from user email");
-        var id = result[0].idUser;
-        console.log("userId:", id);
-        //Add a column for new summarited text in note
-        //noteText is when a request made to save user's notes
-        var note = {
-          name: name,
-          dateRecorded: datetime,
-          noteText: null,
-          userID: id
-        };
-        console.log("note: ", note);
-        connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-          console.log("goes in here");
-          if (err) {
-            res.status(500).send({ success: false, error: err });
-          } else {
-            console.log("created row in the notes table");
-            //add a summary row for the new summarized text
-            console.log("noteId:" + result.insertId);
-            var idNote = result.insertId;
-            var newSumm = {
-              summarizedText: text,
-              noteId: idNote
-            }
-            
-            connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
-              console.log("inside insert");
-              if (err) {
-                res.status(500).send({success: false, error: err})
-              } else {
-                res.status(200).send({success: true});
-              }
-            });
-          }
-        });
-      }
+				res.status(500).send({ success: false, error: err });
+			} else {
+				console.log("Obtained userId from user email");
+				var id = result[0].idUser;
+				console.log("userId:", id);
+				//Add a column for new summarited text in note
+				//noteText is when a request made to save user's notes
+				var note = {
+					name: name,
+					dateRecorded: datetime,
+					noteText: null,
+					userID: id
+				};
+				console.log("note: ", note);
+				connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+					console.log("goes in here");
+					if (err) {
+						res.status(500).send({ success: false, error: err });
+					} else {
+						console.log("created row in the notes table");
+						//add a summary row for the new summarized text
+						console.log("noteID:" + result.insertId);
+						var noteID = result.insertId;
+						var newSumm = {
+							summarizedText: text,
+							noteID: noteID
+						}
+						
+						connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
+							console.log("inside insert");
+							if (err) {
+								res.status(500).send({success: false, error: err})
+							} else {
+								res.status(200).send({success: true});
+							}
+						});
+					}
+				});
+			}
         });
     //});
     //connection.end();
 });
 
+/**
+ * Delete summary from notes and summary table
+ * The frontend will have the noteID when the view for summaries list endpoint and logic 
+ * is implemented, then from the view of summaries the user could delete a summary
+ */
+app.post('/deleteSum', function(req, res){
+	var email = req.email;
+	var noteID = req.noteID;
+
+	//delete all the summaries with the given noteID
+	connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function(err, result) {
+		if (err) {
+			console.log("Couldn't delete summary");
+			res.status(500).send({ success: false, error: err });
+		}
+		else {
+			res.status(200).send({success: true});
+		}
+	});
+	//delete the actual note with the given noteID
+	connection.query("DELETE FROM notes WHERE noteID = ?", [noteID], function(err, result) {
+		if (err) {
+			console.log("Couldn't delete note");
+			res.status(500).send({ success: false, error: err });
+		}
+		else {
+			res.status(200).send({success: true});
+		}
+	});
+
+});
 
 /**
 *** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
@@ -364,57 +396,53 @@ app.post('/resetPassword', function(req, res, next) {
 
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
-  //deep delete the user data and all of the data it points to
-  try {
-    var user = req.body;
-  } catch (error) {
-    res.status(500).send({ success: false, error: err });
-  }
-  var email = user.email;
+	//deep delete the user data and all of the data it points to
+	var user = req.body;
+	var email = user.email;
 
 
-  //get the user ID from the email address:
-  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-    if (err) {
-      res.status(500).send({ success: false, error: error });
-    } else {
-      console.log("inside user");
-      var id = result[0].idUser;
-      //query notes for all with this userID:
-      connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
-        if (err) {
+	//get the user ID from the email address:
+	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+		if (err) {
+			res.status(500).send({ success: false, error: error });
+		} else {
+			console.log("inside user");
+			var id = result[0].idUser;
+			//query notes for all with this userID:
+			connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
+				if (err) {
 
-        } else {
-          console.log("inside notes");
-          for (var i = 0; i < result.length; i++) {
-            console.log("inside for loop");
-            //delete all the summaries:
-            connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
-              if (err) {
-                console.log("Couldn't delete summary");
-              }
-            });
+				} else {
+					console.log("inside notes");
+					for (var i = 0; i < result.length; i++) {
+						console.log("inside for loop");
+						//delete all the summaries:
+						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].noteID], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete summary");
+							}
+						});
 
-            //delete the actual note:
-            connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
-              if (err) {
-                console.log("Couldn't delete note");
-              }
-            });
-          }
+						//delete the actual note:
+						connection.query("DELETE FROM notes WHERE noteID = ?", [result[i].noteID], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete note");
+							}
+						});
+					}
 
-          //all notes deleted, delete the actual user!
-          connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
-              if (err) {
-                console.log("Couldn't delete user");
-              } else {
-                console.log("Deleting user!");
-                res.status(200).send({ success: true});
-              }
-          });
-        }
-        });
-    }
+					//all notes deleted, delete the actual user!
+					connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
+							if (err) {
+								console.log("Couldn't delete user");
+							} else {
+								console.log("Deleting user!");
+								res.status(200).send({ success: true});
+							}
+					});
+				}
+    		});
+		}
   });
 });
 
