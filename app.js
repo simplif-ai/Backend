@@ -128,62 +128,62 @@ app.post('/savetodb', function (req, res) {
             return;
         }*/
         console.log('Connected to database.');
-		console.log("body: ", req.body);
-		var body = req.body;
-		var userEmail = body.email;
-		var text = body.text;
-		var name = text.substring(0, 15);
-		var datetime = new Date();
-		
-		//get full text, summary, 
+    console.log("body: ", req.body);
+    var body = req.body;
+    var userEmail = body.email;
+    var text = body.text;
+    var name = text.substring(0, 15);
+    var datetime = new Date();
+    
+    //get full text, summary, 
         connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
             if (err) {
-				res.status(500).send({ success: false, error: err });
-			} else {
-				console.log("Obtained userId from user email");
-				var id = result[0].idUser;
-				console.log("userId:", id);
-				//Add a column for new summarited text in note
-				//noteText is when a request made to save user's notes
-				var note = {
-					name: name,
-					dateRecorded: datetime,
-					noteText: null,
-					userID: id
-				};
-				console.log("note: ", note);
-				connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-					console.log("goes in here");
-					if (err) {
-						res.status(500).send({ success: false, error: err });
-					} else {
-						console.log("created row in the notes table");
-						//add a summary row for the new summarized text
-						console.log("noteId:" + result.insertId);
-						var idNote = result.insertId;
-						var newSumm = {
-							summarizedText: text,
-							noteId: idNote
-						}
-						
-						connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
-							console.log("inside insert");
-							if (err) {
-								res.status(500).send({success: false, error: err})
-							} else {
-								res.status(200).send({success: true});
-							}
-						});
-					}
-				});
-			}
+        res.status(500).send({ success: false, error: err });
+      } else {
+        console.log("Obtained userId from user email");
+        var id = result[0].idUser;
+        console.log("userId:", id);
+        //Add a column for new summarited text in note
+        //noteText is when a request made to save user's notes
+        var note = {
+          name: name,
+          dateRecorded: datetime,
+          noteText: null,
+          userID: id
+        };
+        console.log("note: ", note);
+        connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+          console.log("goes in here");
+          if (err) {
+            res.status(500).send({ success: false, error: err });
+          } else {
+            console.log("created row in the notes table");
+            //add a summary row for the new summarized text
+            console.log("noteId:" + result.insertId);
+            var idNote = result.insertId;
+            var newSumm = {
+              summarizedText: text,
+              noteId: idNote
+            }
+            
+            connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
+              console.log("inside insert");
+              if (err) {
+                res.status(500).send({success: false, error: err})
+              } else {
+                res.status(200).send({success: true});
+              }
+            });
+          }
+        });
+      }
         });
     //});
     //connection.end();
 });
 
 /**
-***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
+*** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
 **/
 //Google authentication setup
 var GoogleAuth; // Google Auth object.
@@ -219,28 +219,33 @@ function setSigninStatus(isSignedIn) {
 //login endpoint
 //allows the user to login with google authentication
 app.post('/loginToGoogle', function(req, res) {
-	if (GoogleAuth.isSignedIn.get()) {
-		//user is already signed in!
+  if (GoogleAuth.isSignedIn.get()) {
+    //user is already signed in!
     } else {
       // User is not signed in. Start Google auth flow.
       GoogleAuth.signIn();
     }
 
     var token = jwt.sign(payload, "secretString", {
-			          expiresIn: 60 * 60 * 24 // expires in 24 hours
-	});
+                expiresIn: 60 * 60 * 24 // expires in 24 hours
+  });
 
-	res.status(200).send({ success: true, token: token});
+  res.status(200).send({ success: true, token: token});
 
     //return JWT token
 });
 
 app.post('/login', function(req, res) {
-	//login without google API
-	//email and password given
-	var user = req.body;
-	var email = user.email;
-	var password = user.password;
+  //login without google API
+  //email and password given
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+
+  var email = user.email;
+  var password = user.password;
 
   var hashedPassword = hash(password);
 
@@ -267,25 +272,31 @@ app.post('/login', function(req, res) {
         }
       }
     })
-	
+  
 });
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
-	var user = req.body;
-	var email = user.email;
-	var password = user.password;
-	var newPassword = user.newPassword;
 
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		if (err) {
-			console.log("err");
-			res.status(500).send({ success: false, error: err });
-		} else {
-			console.log("Not err");
-			console.log(result);
-			if (result.length == 1) {
-				console.log("count is 1");
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+
+  var email = user.email;
+  var password = user.password;
+  var newPassword = user.newPassword;
+
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    if (err) {
+      console.log("err");
+      res.status(500).send({ success: false, error: err });
+    } else {
+      console.log("Not err");
+      console.log(result);
+      if (result.length == 1) {
+        console.log("count is 1");
         //bcrypt.hash(newPassword, saltRounds, function(err, hash) {
         var hashedPassword = hash(password);
 
@@ -299,11 +310,11 @@ app.post('/changePassword', function(req, res) {
             }
           })
         //});
-			} else {
-				res.status(500).send({ success: false, error: "User not found." });
-			}
-		}
-	})
+      } else {
+        res.status(500).send({ success: false, error: "User not found." });
+      }
+    }
+  })
 });
 
 //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
@@ -311,8 +322,12 @@ app.post('/resetPassword', function(req, res, next) {
     //use mailer to send email to the email address passed in.
     //console.log(req);
    // console.log(req.body);
-    var email = req.body.email;
-    console.log("email " + email);
+    try {
+      var user = req.body;
+    } catch (error) {
+      res.status(500).send({ success: false, error: err });
+    }
+    var email = user.email;
     var url = 'http://localhost:3000/password-reset?email=' + email;
     var transporter = nodemailer.createTransport({
         service: 'GMAIL',
@@ -348,81 +363,88 @@ app.post('/resetPassword', function(req, res, next) {
 
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
-	//deep delete the user data and all of the data it points to
-	var user = req.body;
-	var email = user.email;
+  //deep delete the user data and all of the data it points to
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var email = user.email;
 
 
-	//get the user ID from the email address:
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		if (err) {
-			res.status(500).send({ success: false, error: error });
-		} else {
-			console.log("inside user");
-			var id = result[0].idUser;
-			//query notes for all with this userID:
-			connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
-				if (err) {
+  //get the user ID from the email address:
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    if (err) {
+      res.status(500).send({ success: false, error: error });
+    } else {
+      console.log("inside user");
+      var id = result[0].idUser;
+      //query notes for all with this userID:
+      connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
+        if (err) {
 
-				} else {
-					console.log("inside notes");
-					for (var i = 0; i < result.length; i++) {
-						console.log("inside for loop");
-						//delete all the summaries:
-						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
-							if (err) {
-								console.log("Couldn't delete summary");
-							}
-						});
+        } else {
+          console.log("inside notes");
+          for (var i = 0; i < result.length; i++) {
+            console.log("inside for loop");
+            //delete all the summaries:
+            connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
+              if (err) {
+                console.log("Couldn't delete summary");
+              }
+            });
 
-						//delete the actual note:
-						connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
-							if (err) {
-								console.log("Couldn't delete note");
-							}
-						});
-					}
+            //delete the actual note:
+            connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
+              if (err) {
+                console.log("Couldn't delete note");
+              }
+            });
+          }
 
-					//all notes deleted, delete the actual user!
-					connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
-							if (err) {
-								console.log("Couldn't delete user");
-							} else {
-								console.log("Deleting user!");
-								res.status(200).send({ success: true});
-							}
-					});
-				}
-    		});
-		}
+          //all notes deleted, delete the actual user!
+          connection.query("DELETE FROM users WHERE idUser = ?", [id], function(err, result) {
+              if (err) {
+                console.log("Couldn't delete user");
+              } else {
+                console.log("Deleting user!");
+                res.status(200).send({ success: true});
+              }
+          });
+        }
+        });
+    }
   });
 });
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
 
-	//res.status(500).send({success: false, body: req.body.name})
-  console.log('req', req.body);
-	var user = req.body
-	var name = user.name
-	var email = user.email
-	var password = user.password
-	var prefersEmailUpdates = user.prefersEmailUpdates
+  //res.status(500).send({success: false, body: req.body.name})
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var name = user.name
+  var email = user.email
+  var password = user.password
+  var prefersEmailUpdates = user.prefersEmailUpdates
   var hashedPassword = hash(password);
 
-	//check if this email exists already in the database, if so, return an error.
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		console.log("inside select");
-		if (err) {
-			res.status(500).send({ success: false, error: err });
-		}
+  //check if this email exists already in the database, if so, return an error.
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    console.log("inside select");
+    if (err) {
+      res.status(500).send({ success: false, error: err });
+    }
     console.log('result', result);
-		if (result.length > 0) {
-			//sorry, this email is already taken!
-			console.log("Email address already taken.");
-			console.log("email collison: " + result[0].email);
-			res.status(500).send({ success: false, error: "This email address is already taken." });
-		} else {
+    if (result.length > 0) {
+      //sorry, this email is already taken!
+      console.log("Email address already taken.");
+      console.log("email collison: " + result[0].email);
+      res.status(500).send({ success: false, error: "This email address is already taken." });
+    } else {
 
       //bcrypt.hash(password, saltRounds, function(err, password) {
       // Store hash in your password DB.
@@ -443,77 +465,85 @@ app.post('/createAccount', function(req, res) {
           }
         });
       //});
-			
-		}
-	});
+      
+    }
+  });
 });
 
 app.post('/profile', function(req, res) {
 
-	//fetch the user by email and return it in json
-	var user = req.body;
-	var email = user.email;
+  //fetch the user by email and return it in json
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var email = user.email;
   console.log('req.body', req.body);
-	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
-		if (result.length == 0) {
-			res.status(500).send({ success: false, error: "This email address doesn't exist." });
+  connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
+    if (result.length == 0) {
+      res.status(500).send({ success: false, error: "This email address doesn't exist." });
 
-		} else if (result.length == 1) {
-			var data = {
-				success: true,
-				name: result[0].name,
-				email: result[0].email,
-				//password: result[0].password,
-				prefersEmailUpdates: result[0].prefersEmailUpdates,
-				postCount: result[0].postCount
-			}
+    } else if (result.length == 1) {
+      var data = {
+        success: true,
+        name: result[0].name,
+        email: result[0].email,
+        //password: result[0].password,
+        prefersEmailUpdates: result[0].prefersEmailUpdates,
+        postCount: result[0].postCount
+      }
 
-			res.send(data)
+      res.send(data)
 
-		} else {
-			//more than one user?
-			console.log("More than one user found...");
-		}
-	});
+    } else {
+      //more than one user?
+      console.log("More than one user found...");
+    }
+  });
 });
 
 app.post('/editProfile', function(req, res) {
-	//update name
-	//update email
-	var user = req.body;
-	var email = user.email;
+  //update name
+  //update email
+  try {
+    var user = req.body;
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var email = user.email;
 
-	if (user.newEmail != null) {
-		//update email
-		console.log("Update email");
-		//  'UPDATE employees SET location = ? Where ID = ?',
+  if (user.newEmail != null) {
+    //update email
+    console.log("Update email");
+    //  'UPDATE employees SET location = ? Where ID = ?',
 
-		connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
-			if (err) {
-				res.status(500).send({success: false, error: err})
-			}
-		});
+    connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
+      if (err) {
+        res.status(500).send({success: false, error: err})
+      }
+    });
 
-	} else {
-		console.log("email not updated");
-	}
+  } else {
+    console.log("email not updated");
+  }
 
-	if (user.newName != null) {
-		//update name
-		console.log("Update name");
-		connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
-			if (err) {
-				res.status(500).send({success: false, error: err})
+  if (user.newName != null) {
+    //update name
+    console.log("Update name");
+    connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
+      if (err) {
+        res.status(500).send({success: false, error: err})
 
-			}
-		});
+      }
+    });
 
-	} else {
-		console.log("name not updated");
+  } else {
+    console.log("name not updated");
 
-	}
+  }
 
-	res.status(200).send({success: true})
+  res.status(200).send({success: true})
 
 
 });
