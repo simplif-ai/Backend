@@ -451,7 +451,7 @@ app.post('/createAccount', function(req, res) {
   } catch (error) {
     console.log('error', error); // TODO this error is always undefined instead define the error here
     // TODO in this case the error would be, invalid format of body, not in proper JSON format
-    res.status(500).send({ success: false, error: error });
+    res.status(500).send({ success: false, error: "Invalid JSON format" });
   }
   var name = user.name;
   var email = user.email;
