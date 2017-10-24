@@ -60,7 +60,6 @@ Sends:
 
 Receives:
 {
-  email: "sdblatz@gmail.com",
   name: "Sawyer",
   email: "sdblatz@gmail.com",
   password: "securePass",
