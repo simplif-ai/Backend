@@ -276,33 +276,31 @@ app.post('/login', function(req, res) {
 
   var email = user.email;
   var password = user.password;
-
   var hashedPassword = hash(password);
 
   //scrypt.kdf(password, )
   //check hashed password against database:
-    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
-      if (err) {
-        res.status(500).send({ success: false, error: err });
+  connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
+    if (err) {
+      res.status(500).send({ success: false, error: err });
+    } else {
+      console.log(result);
+      const payload = {
+        admin: email
+      };
+
+      var token = jwt.sign(payload, app.get('superSecret'), {
+        expiresIn: 60 * 60 * 24 // expires in 24 hours
+      });
+
+      if (result.length == 1) {
+        //do JWT stuff
+        res.status(200).send({ success: true, token: token});
       } else {
-        console.log(result)
-        const payload = {
-              admin: email
-          };
-
-        var token = jwt.sign(payload, app.get('superSecret'), {
-                  expiresIn: 60 * 60 * 24 // expires in 24 hours
-         });
-
-        if (result.length == 1) {
-          //do JWT stuff
-          res.status(200).send({ success: true, token: token});
-        } else {
-          res.status(500).send({ success: false, error: "Username or password is incorrect."});
-        }
+        res.status(500).send({ success: false, error: "Username or password is incorrect."});
       }
-    })
-
+    }
+  });
 });
 
 //this endpoint allows the user to change their password in the database.
@@ -438,30 +436,34 @@ app.post('/deleteAccount', function(req,res) {
 							}
 					});
 				}
-    		});
+    	});
 		}
   });
 });
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
-
+  console.log('createAccount', 'req.body', req.body);
   //res.status(500).send({success: false, body: JSON.parse(req.body).name})
   try {
     var user = JSON.parse(req.body);
+    console.log('user', user);
   } catch (error) {
-    res.status(500).send({ success: false, error: err });
+    console.log('error', error); // TODO this error is always undefined instead define the error here
+    // TODO in this case the error would be, invalid format of body, not in proper JSON format
+    res.status(500).send({ success: false, error: error });
   }
-  var name = user.name
-  var email = user.email
-  var password = user.password
-  var prefersEmailUpdates = user.prefersEmailUpdates
+  var name = user.name;
+  var email = user.email;
+  var password = user.password;
+  var prefersEmailUpdates = user.prefersEmailUpdates;
   var hashedPassword = hash(password);
 
   //check if this email exists already in the database, if so, return an error.
   connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
     console.log("inside select");
     if (err) {
+      console.log('err', err);
       res.status(500).send({ success: false, error: err });
     }
     console.log('result', result);
