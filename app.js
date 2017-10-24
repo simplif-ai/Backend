@@ -137,48 +137,49 @@ app.post('/saveSum', function (req, res) {
     var datetime = new Date();
     
     //get full text, summary, 
-        connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
-            if (err) {
-				res.status(500).send({ success: false, error: err });
-			} else {
-				console.log("Obtained userId from user email");
-				var id = result[0].idUser;
-				console.log("userId:", id);
-				//Add a column for new summarited text in note
-				//noteText is when a request made to save user's notes
-				var note = {
-					name: name,
-					dateRecorded: datetime,
-					noteText: null,
-					userID: id
-				};
-				console.log("note: ", note);
-				connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-					console.log("goes in here");
-					if (err) {
-						res.status(500).send({ success: false, error: err });
-					} else {
-						console.log("created row in the notes table");
-						//add a summary row for the new summarized text
-						console.log("noteID:" + result.insertId);
-						var noteID = result.insertId;
-						var newSumm = {
-							summarizedText: text,
-							noteID: noteID
-						}
-						
-						connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
-							console.log("inside insert");
-							if (err) {
-								res.status(500).send({success: false, error: err})
-							} else {
-								res.status(200).send({success: true});
-							}
-						});
+    connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
+        if (err) {
+			res.status(500).send({ success: false, error: err });
+		} else {
+			console.log("Obtained userId from user email");
+			var id = result[0].idUser;
+			console.log("userId:", id);
+			//Add a column for new summarited text in note
+			//noteText is when a request made to save user's notes
+			var note = {
+				name: name,
+				dateRecorded: datetime,
+				noteText: null,
+				userID: id
+			};
+		console.log("note: ", note);
+		connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+			console.log("goes in here");
+				if (err) {
+					res.status(500).send({ success: false, error: err });
+				} 
+				else {
+					console.log("created row in the notes table");
+					//add a summary row for the new summarized text
+					console.log("noteID:" + result.insertId);
+					var noteID = result.insertId;
+					var newSumm = {
+						summarizedText: text,
+						noteID: noteID
 					}
-				});
-			}
-        });
+						
+					connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
+						console.log("inside insert");
+						if (err) {
+							res.status(500).send({success: false, error: err})
+						} else {
+							res.status(200).send({success: true});
+						}
+					});
+				}
+			});
+		}
+    });
     //});
     //connection.end();
 });
