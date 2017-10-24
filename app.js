@@ -9,7 +9,6 @@
 //var bcrypt = require('bcrypt');
 //const saltRounds = 10;
 
-var scrypt = require('scrypt');
 var config = require('./config');
 const express = require('express');
 const app = express();
@@ -257,9 +256,11 @@ app.post('/login', function(req, res) {
 	var email = user.email;
 	var password = user.password;
 
+  var hashedPassword = hash(password);
+
   //scrypt.kdf(password, )
   //check hashed password against database:
-    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
+    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
       if (err) {
         res.status(500).send({ success: false, error: err });
       } else {
@@ -300,7 +301,9 @@ app.post('/changePassword', function(req, res) {
 			if (result.length == 1) {
 				console.log("count is 1");
         //bcrypt.hash(newPassword, saltRounds, function(err, hash) {
-          connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
+        var hashedPassword = hash(password);
+
+          connection.query("UPDATE users SET password = ? WHERE email = ?", [hashedPassword, email], function (err, result) {
             if (err) {
               console.log("err 2");
               res.status(500).send({ success: false, error: error });
@@ -419,6 +422,7 @@ app.post('/createAccount', function(req, res) {
 	var email = user.email
 	var password = user.password
 	var prefersEmailUpdates = user.prefersEmailUpdates
+  var hashedPassword = hash(password);
 
 	//check if this email exists already in the database, if so, return an error.
 	connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
@@ -439,7 +443,7 @@ app.post('/createAccount', function(req, res) {
         var newUser = {
           name: name,
           email: email,
-          password: password,
+          password: hashedPassword,
           feedback: '',
           prefersEmailUpdates: prefersEmailUpdates,
           noteCount: 0
@@ -473,7 +477,7 @@ app.post('/profile', function(req, res) {
 				success: true,
 				name: result[0].name,
 				email: result[0].email,
-				password: result[0].password,
+				//password: result[0].password,
 				prefersEmailUpdates: result[0].prefersEmailUpdates,
 				postCount: result[0].postCount
 			}
@@ -528,7 +532,19 @@ app.post('/editProfile', function(req, res) {
 
 });
 
+function hash(str) {
+  var hash = 5381,
+      i    = str.length;
 
+  while(i) {
+    hash = (hash * 33) ^ str.charCodeAt(--i);
+  }
+
+  /* JavaScript does bitwise operations (like XOR, above) on 32-bit signed
+   * integers. Since we want the results to be always positive, convert the
+   * signed int to an unsigned by doing an unsigned bitshift. */
+  return hash >>> 0;
+}
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -552,3 +568,5 @@ module.exports = app;
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
+
+
