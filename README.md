@@ -4,113 +4,180 @@
 
 ### /login
 Receives:
+
 {
+
   email: "sdblatz@gmail.com",
+
   password: "securePassword"
+
 }
 
 Sends:
+
 {
+
   sucess: "true",
+
   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ",
+
   error: "Email does not exist." //optional
+
 }
 
 ### /editProfile
 Receives:
+
 {
+
   email: "sdblatz@gmail.com",
+
   newEmail: "sblatz@purdue.edu", //optional
+
   newName: "Sawyer" //optional
+
 }
 
 Sends:
+
 {
+
   sucess: "true",
+
   error: "Email does not exist." //optional
+
 }
 
 ### /profile
 
 Receives:
+
 {
+
   email: "sdblatz@gmail.com"
+
 }
 
 Sends:
+
 {
+
   sucess: "true",
+
   name: "Sawyer",
+
   email: "sdblatz@gmail.com",
+
   password: "securePass",
+
   prefersEmailUpdates: "0",
+
   postCount: "3"
+
 }
 
 ### /loginToGoogle
 
 Sends:
+
 {
+
   sucess: "true"
+
   error: "Authentication failed" //optional
+
   token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+
 }
 
 ### /createAccount
 
 Receives:
+
 {
+
   name: "Sawyer",
+
   email: "sdblatz@gmail.com",
+
   password: "securePass",
+
   phoneNumber: "2008657700",
+
   prefersEmailUpdates: "0"
+
 }
 
 Sends:
+
 {
+
   sucess: "true"
+
   error: "Email already exists." //optional
+
 }
 
 ### /deleteAccount
 
 Receives:
+
 {
+
   email: "sdblatz@gmail.com"
+
 }
 
 Sends:
+
 {
+
   sucess: "true",
+
   error: "Email doesn't exist." //optional
+
 }
 
 ### /changePassword
 
 Receives:
+
 {
   email: "sdblatz@gmail.com",
+
   password: "oldPassword",
+
   newPassword: "newPassword"
+
 }
 
 Sends:
+
 {
+
   sucess: "true",
+
   error: "Email doesn't exist." //optional
+
 }
 
 ### /receivePassword
 Receives:
+
 {
+
   email: "luna.ad2@gmail.com",
+
 }
 
 Sends:
+
 {
+
   sucess: sends email to the above email
+
   erro: "email has not been sent"
+
 }
 
 This is a post request for sending an email of the link to reset the password.
@@ -119,16 +186,25 @@ using nodemailer in nodejs.
 
 ### /savesummary
 Receives:
+
 {
+
     "email": "luna.ad2@gmail.com",
+
     "text": "This is the summary text saved by the user",
+
     "name": "CS 307 Notes"
+
 }
 
 Send:
+
 {
+
     success: "true",
+
     error: "error saving to db"
+
 }
 
 This is a post request to save the text summary of the user to the db. A row is created in the notes table which has the name of name of the text, date, noteText(for any additional notes from user), and userId(the account of the user that saved the summary, obtained from email in the json object request). A row is created in to summary table which has the summaryText(the user saved, in the json object request), the noteId(from the notes table), and the brevity.
