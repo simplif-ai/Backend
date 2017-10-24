@@ -111,6 +111,7 @@ app.post('/sumarizertext', function (req, res) {
 
 /**another request to get the saved version from the user of the summarizer text
 **and send it to db
+**could send noteID in response here if needed for frontend?
 **the body contains user's email, text: {email, text}
 **/
 app.post('/saveSum', function (req, res) {
@@ -151,11 +152,11 @@ app.post('/saveSum', function (req, res) {
 					} else {
 						console.log("created row in the notes table");
 						//add a summary row for the new summarized text
-						console.log("noteId:" + result.insertId);
-						var idNote = result.insertId;
+						console.log("noteID:" + result.insertId);
+						var noteID = result.insertId;
 						var newSumm = {
 							summarizedText: text,
-							noteId: idNote
+							noteID: noteID
 						}
 						
 						connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
@@ -174,6 +175,37 @@ app.post('/saveSum', function (req, res) {
     //connection.end();
 });
 
+/**
+ * Delete summary from notes and summary table
+ * The frontend will have the noteID when the view for summaries list endpoint and logic 
+ * is implemented, then from the view of summaries the user could delete a summary
+ */
+app.post('/deleteSum', function(req, res){
+	var email = req.email;
+	var noteID = req.noteID;
+
+	//delete all the summaries with the given noteID
+	connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function(err, result) {
+		if (err) {
+			console.log("Couldn't delete summary");
+			res.status(500).send({ success: false, error: err });
+		}
+		else {
+			res.status(200).send({success: true});
+		}
+	});
+	//delete the actual note with the given noteID
+	connection.query("DELETE FROM notes WHERE noteID = ?", [noteID], function(err, result) {
+		if (err) {
+			console.log("Couldn't delete note");
+			res.status(500).send({ success: false, error: err });
+		}
+		else {
+			res.status(200).send({success: true});
+		}
+	});
+
+});
 
 /**
 ***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
@@ -354,14 +386,14 @@ app.post('/deleteAccount', function(req,res) {
 					for (var i = 0; i < result.length; i++) {
 						console.log("inside for loop");
 						//delete all the summaries:
-						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].idNote], function(err, result) {
+						connection.query("DELETE FROM summaries WHERE noteID = ?", [result[i].noteID], function(err, result) {
 							if (err) {
 								console.log("Couldn't delete summary");
 							}
 						});
 
 						//delete the actual note:
-						connection.query("DELETE FROM notes WHERE idNote = ?", [result[i].idNote], function(err, result) {
+						connection.query("DELETE FROM notes WHERE noteID = ?", [result[i].noteID], function(err, result) {
 							if (err) {
 								console.log("Couldn't delete note");
 							}
