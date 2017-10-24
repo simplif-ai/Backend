@@ -5,161 +5,138 @@
 ### /login
 Receives:
 {
-email: "sdblatz@gmail.com",
-
-password: "securePassword"
+  email: "sdblatz@gmail.com",
+  password: "securePassword"
 }
 
 Sends:
 {
-sucess: "true",
-
-token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ",
-
-error: "Email does not exist." //optional
+  sucess: "true",
+  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ",
+  error: "Email does not exist." //optional
 }
 
 ### /editProfile
 Receives:
 {
-email: "sdblatz@gmail.com",
-
-newEmail: "sblatz@purdue.edu", //optional
-
-newName: "Sawyer" //optional
+  email: "sdblatz@gmail.com",
+  newEmail: "sblatz@purdue.edu", //optional
+  newName: "Sawyer" //optional
 }
 
 Sends:
 {
-sucess: "true",
-
-error: "Email does not exist." //optional
+  sucess: "true",
+  error: "Email does not exist." //optional
 }
 
 ### /profile
 
 Receives:
 {
-email: "sdblatz@gmail.com"
+  email: "sdblatz@gmail.com"
 }
 
 Sends:
 {
-sucess: "true",
-
-name: "Sawyer",
-
-email: "sdblatz@gmail.com",
-
-password: "securePass",
-
-prefersEmailUpdates: "0",
-
-postCount: "3"
+  sucess: "true",
+  name: "Sawyer",
+  email: "sdblatz@gmail.com",
+  password: "securePass",
+  prefersEmailUpdates: "0",
+  postCount: "3"
 }
 
 ### /loginToGoogle
 
 Sends:
 {
-
-sucess: "true"
-
-error: "Authentication failed" //optional
-
-token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+  sucess: "true"
+  error: "Authentication failed" //optional
+  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 }
 
 ### /createAccount
 
 Receives:
 {
-email: "sdblatz@gmail.com",
-
-name: "Sawyer",
-
-email: "sdblatz@gmail.com",
-
-password: "securePass",
-
-phoneNumber: "2008657700",
-
-prefersEmailUpdates: "0"
+  email: "sdblatz@gmail.com",
+  name: "Sawyer",
+  email: "sdblatz@gmail.com",
+  password: "securePass",
+  phoneNumber: "2008657700",
+  prefersEmailUpdates: "0"
 }
 
 Sends:
 {
-sucess: "true"
-
-error: "Email already exists." //optional
+  sucess: "true"
+  error: "Email already exists." //optional
 }
 
 ### /deleteAccount
 
 Receives:
 {
-email: "sdblatz@gmail.com"
+  email: "sdblatz@gmail.com"
 }
 
 Sends:
 {
-sucess: "true",
-
-error: "Email doesn't exist." //optional
+  sucess: "true",
+  error: "Email doesn't exist." //optional
 }
 
 ### /changePassword
 
 Receives:
 {
-email: "sdblatz@gmail.com",
-
-password: "oldPassword",
-
-newPassword: "newPassword"
+  email: "sdblatz@gmail.com",
+  password: "oldPassword",
+  newPassword: "newPassword"
 }
 
 Sends:
 {
-sucess: "true",
-
-error: "Email doesn't exist." //optional
+  sucess: "true",
+  error: "Email doesn't exist." //optional
 }
 
 ### /receivePassword
 Receives:
 {
-email: "luna.ad2@gmail.com",
+  email: "luna.ad2@gmail.com",
 }
 
 Sends:
 {
-sucess: sends email to the above email
-erro: "email has not been sent"
+  sucess: sends email to the above email
+  erro: "email has not been sent"
 }
 
-This is a post request for sending an email of the link to reset the password. 
+This is a post request for sending an email of the link to reset the password.
 An email is sent in the body of the request where the reset password link will be sent to it
 using nodemailer in nodejs.
 
-### /savetodb 
+### /savesummary
 Receives:
 {
     "email": "luna.ad2@gmail.com",
-    "text': "This is the summary text saved by the user"
+    "text": "This is the summary text saved by the user",
+    "name": "CS 307 Notes"
 }
 
 Send:
 {
-    success: "true", 
+    success: "true",
     error: "error saving to db"
 }
 
-This is a post request to save the text summary of the user to the db. A row is created in the notes table which has the name of name of the text, date, noteText(for any additional notes from user), and userId(the account of the user that saved the summary, obtained from email in the json object request). A row is created in to summary table which has the summaryText(the user saved, in the json object request), the noteId(from the notes table), and the brevity. 
+This is a post request to save the text summary of the user to the db. A row is created in the notes table which has the name of name of the text, date, noteText(for any additional notes from user), and userId(the account of the user that saved the summary, obtained from email in the json object request). A row is created in to summary table which has the summaryText(the user saved, in the json object request), the noteId(from the notes table), and the brevity.
 
 ## How to use summarizer Api
 To send text to the summarizer Api to summarize(using the middleware endpoint):
-1. Make a post http-request on the endpoint path 'http://localhost:8000/sumarizertext'. 
+1. Make a post http-request on the endpoint path 'http://localhost:8000/sumarizertext'.
 2. Add the text to be sent in a json object as below:
 ```javascipt
 var mock = "Hi this is Lena's mock text";
@@ -167,11 +144,11 @@ var json = {
     'text': mock
 }
 ```
-3. The body received from the request of the middleware endpoint is in a stringified JSON object 
+3. The body received from the request of the middleware endpoint is in a stringified JSON object
 4. Handle that summarized data recieved as needed
 5. The data that will sent back to your api that called the middleware should be parsed to a JSON object
 #Example
-An example of a get request of making an api that does a post request to send the text to the middleware endpoint, receives the strignifies JSON object of the summarized data from the middleware endpoint, then makes a callback to send that data back to the api that called the middleware. This example doesn't handle or make any changes to the summarized data, but it could be added. 
+An example of a get request of making an api that does a post request to send the text to the middleware endpoint, receives the strignifies JSON object of the summarized data from the middleware endpoint, then makes a callback to send that data back to the api that called the middleware. This example doesn't handle or make any changes to the summarized data, but it could be added.
 ```javascript
 app.get('/mocktext', function(req, res) {
     var mock = "Hi this is Lena's mock text";
@@ -184,7 +161,7 @@ app.get('/mocktext', function(req, res) {
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(json) 
+        body: JSON.stringify(json)
     }
     request.post(options, function(error, response, body){
         res.send(JSON.parse(body));
@@ -192,7 +169,7 @@ app.get('/mocktext', function(req, res) {
 })
 ```
 
-## How to test the middleware api fuctionality 
+## How to test the middleware api fuctionality
 
 1. Pull the code
 2. Use this command to install all dependencies needed from the package.js
@@ -208,6 +185,3 @@ node app.js
 5. Go to a browser and put in url: 'http://localhost:8000/mocktext'
 
 6. You will see the mock summarizer data that was sent from summarizer api
-
-
-  
