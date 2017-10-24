@@ -1,4 +1,6 @@
 branch-defaults:
+  dbUpdateDeleteSum:
+    environment: Simplifai-env
   default:
     environment: Simplifai-env
   deploytemp:
