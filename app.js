@@ -113,7 +113,7 @@ app.post('/sumarizertext', function (req, res) {
 **and send it to db
 **the body contains user's email, text: {email, text}
 **/
-app.post('/savetodb', function (req, res) {
+app.post('/saveSum', function (req, res) {
     /*connection.connect(function (err) {
         if (err) {
             console.error('Database connection failed: ' + err.stack);
@@ -173,6 +173,7 @@ app.post('/savetodb', function (req, res) {
     //});
     //connection.end();
 });
+
 
 /**
 ***	These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
