@@ -86,7 +86,6 @@ app.post('/slack/events', function (req, res) {
 //is sent back to the user
 app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
-    console.log('req.body', JSON.parse(req.body));
     const body = JSON.parse(req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
@@ -443,11 +442,9 @@ app.post('/deleteAccount', function(req,res) {
 
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
-  console.log('createAccount', 'req.body', req.body);
   //res.status(500).send({success: false, body: JSON.parse(req.body).name})
   try {
     var user = JSON.parse(req.body);
-    console.log('user', user);
   } catch (error) {
     console.log('error', error); // TODO this error is always undefined instead define the error here
     // TODO in this case the error would be, invalid format of body, not in proper JSON format
@@ -493,7 +490,6 @@ app.post('/createAccount', function(req, res) {
           }
         });
       //});
-
     }
   });
 });
