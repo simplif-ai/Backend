@@ -82,6 +82,8 @@ email: "sdblatz@gmail.com",
 
 password: "securePass",
 
+phoneNumber: "2008657700",
+
 prefersEmailUpdates: "0"
 }
 
@@ -139,6 +141,21 @@ erro: "email has not been sent"
 This is a post request for sending an email of the link to reset the password. 
 An email is sent in the body of the request where the reset password link will be sent to it
 using nodemailer in nodejs.
+
+### /savetodb 
+Receives:
+{
+    "email": "luna.ad2@gmail.com",
+    "text': "This is the summary text saved by the user"
+}
+
+Send:
+{
+    success: "true", 
+    error: "error saving to db"
+}
+
+This is a post request to save the text summary of the user to the db. A row is created in the notes table which has the name of name of the text, date, noteText(for any additional notes from user), and userId(the account of the user that saved the summary, obtained from email in the json object request). A row is created in to summary table which has the summaryText(the user saved, in the json object request), the noteId(from the notes table), and the brevity. 
 
 ## How to use summarizer Api
 To send text to the summarizer Api to summarize(using the middleware endpoint):
