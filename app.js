@@ -6,8 +6,10 @@
  */
 
 //List dependencies
-var bcrypt = require('bcrypt');
-const saltRounds = 10;
+//var bcrypt = require('bcrypt');
+//const saltRounds = 10;
+
+var scrypt = require('scrypt');
 var config = require('./config');
 const express = require('express');
 const app = express();
@@ -255,10 +257,9 @@ app.post('/login', function(req, res) {
 	var email = user.email;
 	var password = user.password;
 
+  //scrypt.kdf(password, )
   //check hashed password against database:
-
-  bcrypt.hash(password, saltRounds, function(err, hash) {
-    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hash], function (err, result) {
+    connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, password], function (err, result) {
       if (err) {
         res.status(500).send({ success: false, error: err });
       } else {
@@ -279,9 +280,8 @@ app.post('/login', function(req, res) {
         }
       }
     })
-  });
 	
-})
+});
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
@@ -299,8 +299,8 @@ app.post('/changePassword', function(req, res) {
 			console.log(result);
 			if (result.length == 1) {
 				console.log("count is 1");
-        bcrypt.hash(newPassword, saltRounds, function(err, hash) {
-          connection.query("UPDATE users SET password = ? WHERE email = ?", [hash, email], function (err, result) {
+        //bcrypt.hash(newPassword, saltRounds, function(err, hash) {
+          connection.query("UPDATE users SET password = ? WHERE email = ?", [newPassword, email], function (err, result) {
             if (err) {
               console.log("err 2");
               res.status(500).send({ success: false, error: error });
@@ -309,7 +309,7 @@ app.post('/changePassword', function(req, res) {
               res.status(200).send({ success: true});
             }
           })
-        });
+        //});
 			} else {
 				res.status(500).send({ success: false, error: "User not found." });
 			}
@@ -434,12 +434,12 @@ app.post('/createAccount', function(req, res) {
 			res.status(500).send({ success: false, error: "This email address is already taken." });
 		} else {
 
-      bcrypt.hash(password, saltRounds, function(err, hash) {
+      //bcrypt.hash(password, saltRounds, function(err, password) {
       // Store hash in your password DB.
         var newUser = {
           name: name,
           email: email,
-          password: hash,
+          password: password,
           feedback: '',
           prefersEmailUpdates: prefersEmailUpdates,
           noteCount: 0
@@ -452,7 +452,7 @@ app.post('/createAccount', function(req, res) {
             res.status(200).send({success: true});
           }
         });
-      });
+      //});
 			
 		}
 	});
