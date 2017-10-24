@@ -37,12 +37,8 @@ var connection = mysql.createConnection({
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-//app.use(logger('dev'));
-app.use(bodyparser.json());
+app.use(bodyparser.text());
 app.use(bodyparser.urlencoded({ extended: false }));
-//app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // enable cors
@@ -81,7 +77,7 @@ app.get('/mocktext', function (req, res) {
 //Slackbot endpoint
 
 app.post('/slack/events', function (req, res) {
-  res.send(req.body.challenge);
+  res.send(JSON.parse(req.body).challenge);
 });
 
 
@@ -90,14 +86,15 @@ app.post('/slack/events', function (req, res) {
 //is sent back to the user
 app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
-    console.log('req.body', req.body);
+    console.log('req.body', JSON.parse(req.body));
+    const body = JSON.parse(req.body);
     var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
         headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(req.body),
+        body: JSON.stringify(body),
         method: 'POST'
     }
 
@@ -122,74 +119,73 @@ app.post('/summarizertext', function (req, res) {
 **could send noteID in response here if needed for frontend?
 **the body contains user's email, text: {email, text}
 **/
-app.post('/saveSum', function (req, res) {
+app.post('/savesummary', function (req, res) {
     /*connection.connect(function (err) {
-        if (err) {
-            console.error('Database connection failed: ' + err.stack);
-            return;
-        }*/
-        console.log('Connected to database.');
+    if (err) {
+      console.error('Database connection failed: ' + err.stack);
+      return;
+    }
+    */
+    console.log('Connected to database.');
     console.log("body: ", req.body);
-    var body = req.body;
+    var body = JSON.parse(req.body);
     var userEmail = body.email;
     var text = body.text;
     var name = text.substring(0, 15);
     var datetime = new Date();
-    
-    //get full text, summary, 
-    connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result){
-        if (err) {
-			res.status(500).send({ success: false, error: err });
-		} else {
-			console.log("Obtained userId from user email");
-			var id = result[0].idUser;
-			console.log("userId:", id);
-			//Add a column for new summarited text in note
-			//noteText is when a request made to save user's notes
-			var note = {
-				name: name,
-				dateRecorded: datetime,
-				noteText: null,
-				userID: id
-			};
-		console.log("note: ", note);
-		connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-			console.log("goes in here");
-				if (err) {
-					res.status(500).send({ success: false, error: err });
-				} 
-				else {
-					console.log("created row in the notes table");
-					//add a summary row for the new summarized text
-					console.log("noteID:" + result.insertId);
-					var noteID = result.insertId;
-					var newSumm = {
-						summarizedText: text,
-						noteID: noteID
-					}
-						
-					connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
-						console.log("inside insert");
-						if (err) {
-							res.status(500).send({success: false, error: err})
-						} else {
-							res.status(200).send({success: true});
-						}
-					});
-				}
-			});
-		}
+
+    //get full text, summary,
+    connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result) {
+      if (err) {
+			  res.status(500).send({ success: false, error: err });
+		  }
+      else {
+  			console.log("Obtained userId from user email");
+  			var id = result[0].idUser;
+  			console.log("userId:", id);
+  			//Add a column for new summarited text in note
+  			//noteText is when a request made to save user's notes
+  			var note = {
+  				name: name,
+  				dateRecorded: datetime,
+  				noteText: null,
+  				userID: id
+  			};
+    		console.log("note: ", note);
+		    connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+			    console.log("goes in here");
+  				if (err) {
+  					res.status(500).send({ success: false, error: err });
+  				}
+  				else {
+  					console.log("created row in the notes table");
+  					//add a summary row for the new summarized text
+  					console.log("noteID:" + result.insertId);
+  					var noteID = result.insertId;
+  					var newSumm = {
+  						summarizedText: text,
+  						noteID: noteID
+  					};
+  					connection.query('INSERT INTO summaries SET ?', [newSumm], function(err, result) {
+  						console.log("inside insert");
+  						if (err) {
+  							res.status(500).send({success: false, error: err});
+  						} else {
+  							res.status(200).send({success: true});
+  						}
+            });
+          }
+        });
+      }
     });
-    //});
-    //connection.end();
 });
 
 /**
  * Delete summary from notes and summary table
- * The frontend will have the noteID when the view for summaries list endpoint and logic 
+ * The frontend will have the noteID when the view for summaries list endpoint and logic
  * is implemented, then from the view of summaries the user could delete a summary
  */
-app.post('/deleteSum', function(req, res){
+app.post('/deletesummary', function(req, res){
 	var email = req.email;
 	var noteID = req.noteID;
 
@@ -273,7 +269,7 @@ app.post('/login', function(req, res) {
   //login without google API
   //email and password given
   try {
-    var user = req.body;
+    var user = JSON.parse(req.body);
   } catch (error) {
     res.status(500).send({ success: false, error: err });
   }
@@ -306,14 +302,14 @@ app.post('/login', function(req, res) {
         }
       }
     })
-  
+
 });
 
 //this endpoint allows the user to change their password in the database.
 app.post('/changePassword', function(req, res) {
 
   try {
-    var user = req.body;
+    var user = JSON.parse(req.body);
   } catch (error) {
     res.status(500).send({ success: false, error: err });
   }
@@ -355,9 +351,9 @@ app.post('/changePassword', function(req, res) {
 app.post('/resetPassword', function(req, res, next) {
     //use mailer to send email to the email address passed in.
     //console.log(req);
-   // console.log(req.body);
+   // console.log(JSON.parse(req.body));
     try {
-      var user = req.body;
+      var user = JSON.parse(req.body);
     } catch (error) {
       res.status(500).send({ success: false, error: err });
     }
@@ -398,7 +394,7 @@ app.post('/resetPassword', function(req, res, next) {
 //this endpoint deletes the user from the database and removes all data associated with them.
 app.post('/deleteAccount', function(req,res) {
 	//deep delete the user data and all of the data it points to
-	var user = req.body;
+	var user = JSON.parse(req.body);
 	var email = user.email;
 
 
@@ -450,9 +446,9 @@ app.post('/deleteAccount', function(req,res) {
 //lets the user create an account without google authentication by using our database instead.
 app.post('/createAccount', function(req, res) {
 
-  //res.status(500).send({success: false, body: req.body.name})
+  //res.status(500).send({success: false, body: JSON.parse(req.body).name})
   try {
-    var user = req.body;
+    var user = JSON.parse(req.body);
   } catch (error) {
     res.status(500).send({ success: false, error: err });
   }
@@ -495,7 +491,7 @@ app.post('/createAccount', function(req, res) {
           }
         });
       //});
-      
+
     }
   });
 });
@@ -504,12 +500,12 @@ app.post('/profile', function(req, res) {
 
   //fetch the user by email and return it in json
   try {
-    var user = req.body;
+    var user = JSON.parse(req.body);
   } catch (error) {
     res.status(500).send({ success: false, error: err });
   }
   var email = user.email;
-  console.log('req.body', req.body);
+  console.log('req.body', JSON.parse(req.body));
   connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
     if (result.length == 0) {
       res.status(500).send({ success: false, error: "This email address doesn't exist." });
@@ -537,7 +533,7 @@ app.post('/editProfile', function(req, res) {
   //update name
   //update email
   try {
-    var user = req.body;
+    var user = JSON.parse(req.body);
   } catch (error) {
     res.status(500).send({ success: false, error: err });
   }
@@ -614,5 +610,3 @@ module.exports = app;
 
 app.listen('8000');
 console.log('Listening on port ' + 8000 + '...');
-
-
