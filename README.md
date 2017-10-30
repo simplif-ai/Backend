@@ -25,6 +25,15 @@ or
 gulp
 ```
 
+## Run Linting
+1. install eslint globally 
+```
+npm install -g eslint
+```
+2. run linter
+```
+npm run lint
+```
 
 ## Endpoints
 
