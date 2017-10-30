@@ -6,8 +6,6 @@
  */
 
 //List dependencies
-//var bcrypt = require('bcrypt');
-//const saltRounds = 10;
 
 var config = require('./config');
 const express = require('express');
@@ -19,10 +17,9 @@ const path = require('path');
 const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
-
+require('dotenv').config();
 var jwt = require('jsonwebtoken');
 app.set('superSecret', config.secret); // secret variable
-
 
 //setup database
 var connection = mysql.createConnection({
@@ -533,6 +530,7 @@ app.post('/profile', function(req, res) {
  * @return res: {success, darkMode?, error?}
  */
 app.get('/darkmode', function (req, res) {
+	console.log(process.env.RDS_USERNAME);
 	const body = JSON.parse(req.body);
 	let userID = body.userId;
 
