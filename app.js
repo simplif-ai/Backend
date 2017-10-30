@@ -290,7 +290,7 @@ app.post('/login', function(req, res) {
       	var response =  {
       		sucess: true,
       		token: token,
-      		userID: result.userId
+      		userID: result.idUser
       	}
        	//return the user ID, token, and success
         res.status(200).send(response);
@@ -402,7 +402,7 @@ app.post('/deleteAccount', function(req,res) {
 			console.log("inside user");
 			var id = result[0].idUser;
 			//query notes for all with this userID:
-			connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
+			connection.query("SELECT * FROM notes WHERE idUser = ?", [id], function (err, result) {
 				if (err) {
 
 				} else {
@@ -537,7 +537,7 @@ app.get('/darkmode', function (req, res) {
 	let userID = body.userId;
 
 	//query the database for the user's dark mode preference
-	connection.query("SELECT * FROM users WHERE userId = ?", [userID], function (err, result) {
+	connection.query("SELECT * FROM users WHERE idUser = ?", [userID], function (err, result) {
 	    if (err) {
 	     	res.status(500).send({success: false, error: err});
 	    } else {
@@ -561,7 +561,7 @@ app.post('/darkmode', function (req, res) {
 	let userID = body.userId;
 	let darkMode = body.darkMode;
 	//set the boolean value of dark mode
-	connection.query("UPDATE users SET darkMode = ? WHERE userId = ?", [darkMode, userID], function (err, result) {
+	connection.query("UPDATE users SET darkMode = ? WHERE idUser = ?", [darkMode, userID], function (err, result) {
       if (err) {
         res.status(500).send({success: false, error: err})
       } else {
@@ -611,7 +611,6 @@ app.post('/editProfile', function(req, res) {
   }
 
   res.status(200).send({success: true})
-
 
 });
 
