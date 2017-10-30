@@ -538,7 +538,7 @@ app.get('/darkmode', function (req, res) {
 
 	//query the database for the user's dark mode preference
 	connection.query("SELECT * FROM users WHERE idUser = ?", [userID], function (err, result) {
-	    if (err) {
+	    if (err || result.length < 1) {
 	     	res.status(500).send({success: false, error: err});
 	    } else {
 	    	var response = {
@@ -562,9 +562,10 @@ app.post('/darkmode', function (req, res) {
 	let darkMode = body.darkMode;
 	//set the boolean value of dark mode
 	connection.query("UPDATE users SET darkMode = ? WHERE idUser = ?", [darkMode, userID], function (err, result) {
-      if (err) {
+      if (err || result.length < 1) {
         res.status(500).send({success: false, error: err})
-      } else {
+      }
+       else {
       	res.status(500).send({success: true})
       }
     });
