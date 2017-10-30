@@ -551,15 +551,23 @@ app.get('/darkmode', function (req, res) {
 });
 
 /**
-* 
-*/
+ * Sets the user's preference for dark mode
+ * @param req: {userId, darkMode}
+ * @return res: {success, error?}
+ */
 app.post('/darkmode', function (req, res) {
 	const body = JSON.parse(req.body);
-	
+	let userID = body.userId;
+	let darkMode = body.darkMode;
 	//set the boolean value of dark mode
-
+	connection.query("UPDATE users SET darkMode = ? WHERE userId = ?", [darkMode, userID], function (err, result) {
+      if (err) {
+        res.status(500).send({success: false, error: err})
+      } else {
+      	res.status(500).send({success: true})
+      }
+    });
 });
-
 
 app.post('/editProfile', function(req, res) {
   //update name
