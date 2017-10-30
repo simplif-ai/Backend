@@ -530,18 +530,19 @@ app.post('/profile', function(req, res) {
  * @return res: {success, darkMode?, error?}
  */
 app.get('/darkmode', function (req, res) {
-	console.log(process.env.RDS_USERNAME);
-	const body = JSON.parse(req.body);
-	let userID = body.userId;
+	const header = req.headers;
+	let userID = header.userid;
 
 	//query the database for the user's dark mode preference
 	connection.query("SELECT * FROM users WHERE idUser = ?", [userID], function (err, result) {
-	    if (err || result.length < 1) {
+	    if (err) {
 	     	res.status(500).send({success: false, error: err});
+	    } else if (result.length != 1) {
+	    	res.status(500).send({success: false, error: "No user found with this id."});
 	    } else {
 	    	var response = {
 	    		success: true,
-	    		darkMode: result.darkMode
+	    		darkMode: result[0].darkMode
 	    	};
 
 	     	res.status(500).send(response);
@@ -559,6 +560,8 @@ app.post('/darkmode', function (req, res) {
 	let userID = body.userId;
 	let darkMode = body.darkMode;
 	//set the boolean value of dark mode
+	console.log(userID);
+	console.log(darkMode);
 	connection.query("UPDATE users SET darkMode = ? WHERE idUser = ?", [darkMode, userID], function (err, result) {
       if (err || result.length < 1) {
         res.status(500).send({success: false, error: err})
