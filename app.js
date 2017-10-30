@@ -548,6 +548,7 @@ app.get('/darkmode', function (req, res) {
 
 	     	res.status(500).send(response);
 	    }
+	});
 });
 
 /**
