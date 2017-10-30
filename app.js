@@ -74,13 +74,6 @@ app.get('/mocktext', function (req, res) {
     });
 });
 
-//Slackbot endpoint
-
-app.post('/slack/events', function (req, res) {
-  res.send(JSON.parse(req.body).challenge);
-});
-
-
 //Text endpoint; text sumbitted by user is handled here
 //It is then sent to the summarizer api and the data received
 //is sent back to the user
@@ -292,11 +285,17 @@ app.post('/login', function(req, res) {
         expiresIn: 60 * 60 * 24 // expires in 24 hours
       });
 
+
       if (result.length == 1) {
-        //do JWT stuff
-        res.status(200).send({ success: true, token: token});
+      	var response =  {
+      		sucess: true,
+      		token: token,
+      		userID: result.userId
+      	}
+       	//return the user ID, token, and success
+        res.status(200).send(response);
       } else {
-        res.status(500).send({ success: false, error: "Username or password is incorrect."});
+        res.status(500).send({success: false, error: "Username or password is incorrect."});
       }
     }
   });
@@ -513,7 +512,6 @@ app.post('/profile', function(req, res) {
         success: true,
         name: result[0].name,
         email: result[0].email,
-        //password: result[0].password,
         prefersEmailUpdates: result[0].prefersEmailUpdates,
         postCount: result[0].postCount
       }
@@ -526,6 +524,42 @@ app.post('/profile', function(req, res) {
     }
   });
 });
+
+
+
+/**
+ * Gets the user's preference for dark mode
+ * @param req: {userId}
+ * @return res: {success, darkMode?, error?}
+ */
+app.get('/darkmode', function (req, res) {
+	const body = JSON.parse(req.body);
+	let userID = body.userId;
+
+	//query the database for the user's dark mode preference
+	connection.query("SELECT * FROM users WHERE userId = ?", [userID], function (err, result) {
+	    if (err) {
+	     	res.status(500).send({success: false, error: err});
+	    } else {
+	    	var response = {
+	    		success: true,
+	    		darkMode: result.darkMode
+	    	};
+
+	     	res.status(500).send(response);
+	    }
+});
+
+/**
+* 
+*/
+app.post('/darkmode', function (req, res) {
+	const body = JSON.parse(req.body);
+	
+	//set the boolean value of dark mode
+
+});
+
 
 app.post('/editProfile', function(req, res) {
   //update name
