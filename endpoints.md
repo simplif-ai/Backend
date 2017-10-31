@@ -74,3 +74,6 @@ Sends:
 sucess: "true"
 error: "Email doesn't exist." //optional
 }
+
+
+### /addpicture
