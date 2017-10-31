@@ -2,24 +2,31 @@ var fs = require('fs');
 var readline = require('readline');
 var google = require('googleapis');
 var googleAuth = require('google-auth-library');
-
+const express = require('express');
+const googledrive = express();
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/drive-nodejs-quickstart.json
-var SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly'];
-var TOKEN_DIR = (process.env.HOME || process.env.HOMEPATH ||
+var SCOPES = ['https://www.googleapis.com/auth/drive'];
+var TOKEN_DIR = './src/Google/' + (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'drive-nodejs-quickstart.json';
 
-// Load client secrets from a local file.
-fs.readFile('client_secret.json', function processClientSecrets(err, content) {
-  if (err) {
-    console.log('Error loading client secret file: ' + err);
-    return;
-  }
-  // Authorize a client with the loaded credentials, then call the
-  // Drive API.
-  authorize(JSON.parse(content), listFiles);
-});
+function authenticateUser() {
+  // Load client secrets from a local file.
+  fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
+    if (err) {
+      console.log('Error loading client secret file: ' + err);
+      return;
+    }
+    console.log('no error');
+    console.log(JSON.parse(content));
+    // Authorize a client with the loaded credentials, then call the
+    // Drive API.
+    authorize(JSON.parse(content), listFiles);
+    console.log('after authorize');
+  });
+}
+
 
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
@@ -29,6 +36,7 @@ fs.readFile('client_secret.json', function processClientSecrets(err, content) {
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(credentials, callback) {
+  console.log('inside authorize');
   var clientSecret = credentials.client_secret;
   var clientId = credentials.client_id;
   var redirectUrl = credentials.redirect_uris[0];
@@ -37,12 +45,16 @@ function authorize(credentials, callback) {
 
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, function(err, token) {
+    //force get a new token:
+    //getNewToken(oauth2Client, callback);
+    
     if (err) {
       getNewToken(oauth2Client, callback);
     } else {
       oauth2Client.credentials = JSON.parse(token);
       callback(oauth2Client);
     }
+    
   });
 }
 
@@ -95,6 +107,45 @@ function storeToken(token) {
   console.log('Token stored to ' + TOKEN_PATH);
 }
 
+googledrive.post('/googledriveauthenticate', function (req, res) {
+  console.log('inside authenticate user endpoint');
+  res.status(200).send({success: true});
+
+});
+
+//endpoint for uploading text
+googledrive.post('/exporttodrive', function (req, res) {
+  console.log('in google drive post');
+});
+
+/**
+* Upload the given summary to the user's google drive account
+*/
+function upload(title, text, auth) {
+  var drive = google.drive('v2');
+  var fileMetadata = {
+    'title': title,
+    'mimeType': 'application/vnd.google-apps.document'
+  };
+  var media = {
+    mimeType: 'text/plain',
+    body: text
+  };
+  drive.files.insert({
+    auth: auth,
+    resource: fileMetadata,
+    media: media,
+    fields: 'id'
+  }, function (err, file) {
+    if (err) {
+      // Handle error
+      console.error(err);
+    } else {
+      console.log('File Id:', file.id);
+    }
+  });
+}
+
 /**
  * Lists the names and IDs of up to 10 files.
  *
@@ -110,6 +161,8 @@ function listFiles(auth) {
       console.log('The API returned an error: ' + err);
       return;
     }
+
+    upload('Lit af fam.', auth);
     var files = response.items;
     if (files.length == 0) {
       console.log('No files found.');
@@ -122,3 +175,5 @@ function listFiles(auth) {
     }
   });
 }
+
+module.exports = googledrive;
