@@ -74,3 +74,29 @@ Sends:
 sucess: "true"
 error: "Email doesn't exist." //optional
 }
+
+### /savesummary
+Receives:
+
+{
+
+    "email": "luna.ad2@gmail.com",
+
+    "text": "This is the summary text saved by the user",
+
+    "name": "CS 307 Notes"
+
+}
+
+Send:
+
+{
+
+    success: "true",
+
+    error: "error saving to db"
+
+}
+
+### /deleteSummary
+
