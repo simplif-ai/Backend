@@ -11,16 +11,17 @@ var TOKEN_DIR = './src/Google/' + (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'drive-nodejs-quickstart.json';
 
-function authenticateUser(callback) {
+function authenticateUser(code, callback) {
   // Load client secrets from a local file.
   fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
     if (err) {
       console.log('Error loading client secret file: ' + err);
       return;
     }
+
     // Authorize a client with the loaded credentials, then call the
     // Drive API.
-    authorize(JSON.parse(content), callback);
+    authorize(JSON.parse(content), code, callback);
   });
 }
 
@@ -32,7 +33,7 @@ function authenticateUser(callback) {
  * @param {Object} credentials The authorization client credentials.
  * @param {function} callback The callback to call with the authorized client.
  */
-function authorize(credentials, callback) {
+function authorize(credentials, code, callback) {
   console.log('inside authorize');
   var clientSecret = credentials.client_secret;
   var clientId = credentials.client_id;
@@ -40,6 +41,10 @@ function authorize(credentials, callback) {
   var auth = new googleAuth();
   var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
 
+  getNewToken(oauth2Client, code, callback);
+  
+
+  /*
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, function(err, token) {
     //force get a new token:
@@ -54,6 +59,7 @@ function authorize(credentials, callback) {
     }
     
   });
+  */
 }
 
 /**
@@ -64,16 +70,39 @@ function authorize(credentials, callback) {
  * @param {getEventsCallback} callback The callback to call with the authorized
  *     client.
  */
-function getNewToken(oauth2Client, callback) {
+function getNewToken(oauth2Client, code, callback) {
   var authUrl = oauth2Client.generateAuthUrl({
     access_type: 'offline',
     scope: SCOPES
   });
+
+  console.log('code is: ' + code);
+  if (code == "") {
+    //just return the url we need to get the code
+    callback(false, authUrl, "");
+  } else {
+      oauth2Client.getToken(code, function(err, token) {
+        if (err) {
+          console.log('Error while trying to retrieve access token', err);
+          return;
+        }
+        oauth2Client.credentials = token;
+        callback(true, "", token);
+        //storeToken(token);
+        //callback(oauth2Client);
+      });
+  }
+
+
+
+  
+  /*
   console.log('Authorize this app by visiting this url: ', authUrl);
   var rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   });
+
   rl.question('Enter the code from that page here: ', function(code) {
     rl.close();
     oauth2Client.getToken(code, function(err, token) {
@@ -83,10 +112,25 @@ function getNewToken(oauth2Client, callback) {
       }
       oauth2Client.credentials = token;
       storeToken(token);
-      callback(oauth2Client);
+      //callback(oauth2Client);
     });
   });
+  */
 }
+
+/*
+function saveToken() {
+    oauth2Client.getToken(code, function(err, token) {
+    if (err) {
+      console.log('Error while trying to retrieve access token', err);
+      return;
+    }
+    oauth2Client.credentials = token;
+    storeToken(token);
+    //callback(oauth2Client);
+  });
+}
+*/
 
 /**
  * Store token to disk be used in later program executions.
@@ -176,5 +220,6 @@ function listFiles(auth) {
 
 module.exports = {
   "googledrive": googledrive,
-  "authenticateUser": authenticateUser
+  "authenticateUser": authenticateUser,
+  "storeToken": storeToken
 }

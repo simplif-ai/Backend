@@ -211,14 +211,36 @@ app.post('/deletesummary', function(req, res){
 
 });
 
+/**
+* @param: req = {googleCode}
+* @return: res = {authorizeURL, success, googleToken}
+*/
 //allows the user to login to Google API
 app.post('/loginToGoogle', function(req, res) {
- 
-  googledrive.authenticateUser(function(success, authorizeURL, token) {
+  try {
+    var body = JSON.parse(req.body);
+  } catch (error) {
+    res.status(500).send({success: false, error: err});
+  }
+
+  try {
+    var googleCode = body.googleCode;
+  } catch (error) {
+    console.log('in error');
+    res.status(500).send({success: false, error: err});
+  }
+
+  //if I was given a googleCode, try to create a token out of it
+
+  googledrive.authenticateUser(googleCode, function(success, authorizeURL, googleToken) {
     if (success) {
-        res.status(200).send({ success: true, token: token});
+        res.status(200).send({success:true, googleToken: googleToken});
+    } else {
+      //return the authorizeURL
+        res.status(500).send({success:false, authorizeURL: authorizeURL});
     }
   });
+  
 });
 
 app.post('/login', function(req, res) {
