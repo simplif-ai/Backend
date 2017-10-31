@@ -211,57 +211,14 @@ app.post('/deletesummary', function(req, res){
 
 });
 
-/**
-*** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
-**/
-//Google authentication setup
-var GoogleAuth; // Google Auth object.
-function initClient() {
-  gapi.client.init({
-      'apiKey': 'ON6JuWU0xirbexXJ3H2a7wYq',
-      'clientId': '950783336607-ouratd1dt1hr3baond6u36664ijrmjnq.apps.googleusercontent.com',
-      'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-  }).then(function () {
-      GoogleAuth = gapi.auth2.getAuthInstance();
-
-      // Listen for sign-in state changes.
-      GoogleAuth.isSignedIn.listen(updateSigninStatus);
-
-      // Handle initial sign-in state. (Determine if user is already signed in.)
-      var user = GoogleAuth.currentUser.get();
-      setSigninStatus();
-
-    });
-};
-
-function setSigninStatus(isSignedIn) {
-    var user = GoogleAuth.currentUser.get();
-    var isAuthorized = user.hasGrantedScopes(SCOPE);
-    if (isAuthorized) {
-      //set something about being authorized
-    } else {
-      //let the user know they're not authorized
-    }
-};
-
-//login endpoint
-//allows the user to login with google authentication
+//allows the user to login to Google API
 app.post('/loginToGoogle', function(req, res) {
-  if (GoogleAuth.isSignedIn.get()) {
-    //user is already signed in!
-    } else {
-      // User is not signed in. Start Google auth flow.
-      GoogleAuth.signIn();
+ 
+  googledrive.authenticateUser(function(success, authorizeURL, token) {
+    if (success) {
+        res.status(200).send({ success: true, token: token});
     }
-
-    var token = jwt.sign(payload, "secretString", {
-                expiresIn: 60 * 60 * 24 // expires in 24 hours
   });
-
-  res.status(200).send({ success: true, token: token});
-
-    //return JWT token
 });
 
 app.post('/login', function(req, res) {
@@ -292,12 +249,15 @@ app.post('/login', function(req, res) {
         expiresIn: 60 * 60 * 24 // expires in 24 hours
       });
 
-      if (result.length == 1) {
-        //do JWT stuff
-        res.status(200).send({ success: true, token: token});
-      } else {
-        res.status(500).send({ success: false, error: "Username or password is incorrect."});
-      }
+      googledrive.authenticateUser(function(success, authorizeURL, googleToken) {
+
+        if (result.length == 1) {
+          res.status(200).send({success: true, token: token, googleToken: googleToken});
+        } else {
+          res.status(500).send({success: false, error: "Username or password is incorrect.", googleToken: googleToken});
+        }
+
+      });
     }
   });
 });

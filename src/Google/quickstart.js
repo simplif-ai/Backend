@@ -11,19 +11,16 @@ var TOKEN_DIR = './src/Google/' + (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'drive-nodejs-quickstart.json';
 
-function authenticateUser() {
+function authenticateUser(callback) {
   // Load client secrets from a local file.
   fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
     if (err) {
       console.log('Error loading client secret file: ' + err);
       return;
     }
-    console.log('no error');
-    console.log(JSON.parse(content));
     // Authorize a client with the loaded credentials, then call the
     // Drive API.
-    authorize(JSON.parse(content), listFiles);
-    console.log('after authorize');
+    authorize(JSON.parse(content), callback);
   });
 }
 
@@ -48,6 +45,7 @@ function authorize(credentials, callback) {
     //force get a new token:
     //getNewToken(oauth2Client, callback);
     
+    //if the user is not authenticated, we need to tell Audrey to get them a new token:
     if (err) {
       getNewToken(oauth2Client, callback);
     } else {
@@ -176,4 +174,7 @@ function listFiles(auth) {
   });
 }
 
-module.exports = googledrive;
+module.exports = {
+  "googledrive": googledrive,
+  "authenticateUser": authenticateUser
+}
