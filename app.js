@@ -243,6 +243,36 @@ app.post('/loginToGoogle', function(req, res) {
   
 });
 
+/**
+* Exports the summary to the user's google drive
+* @param: req = {text, googleToken}
+* @return: res = {authorizeURL, success, googleToken}
+*/
+app.post('/exportToDrive', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+
+  } catch(error) {
+      res.status(500).send({success: false, error: err});
+  }
+
+  try {
+    var text = body.text;
+  } catch (error) {
+    res.status(500).send({success: false, error: err});
+  }
+
+  try {
+    var googleToken = body.googleCode;
+  } catch (error) {
+    res.status(500).send({success: false, error: err});
+  }
+
+  
+
+  console.log('in google drive post');
+});
+
 app.post('/login', function(req, res) {
   //login without google API
   //email and password given
