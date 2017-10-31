@@ -34,10 +34,11 @@ postCount: "3"
 
 Receives:
 {
-email: "sdblatz@gmail.com"
-name: "Sawyer"
-email: "sdblatz@gmail.com"
-password: "securePass"
+email: "sdblatz@gmail.com",
+name: "Sawyer",
+email: "sdblatz@gmail.com",
+password: "securePass",
+phoneNumber: "2008657700",
 prefersEmailUpdates: "0"
 }
 
@@ -99,4 +100,23 @@ Send:
 }
 
 ### /deleteSummary
+
+## /savenotes
+Receives:
+
+{
+    "noteId": 13,
+    "noteText": "Hi this is a note text"
+
+}
+
+Send:
+
+{
+
+    success: "true",
+
+    error: "error saving to db"
+
+}
 
