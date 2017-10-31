@@ -234,6 +234,63 @@ app.post('/savenotes', function(req, res){
   });
 });
 
+/**Add collaborators to users
+ * The user wants to add a collaborator so they select a note and enter the email address
+ * of the collaborator that you want to share the note with
+ * We recive the userEmail: the email of the current user, noteID: the note id of the current
+ * user that they want to share with collaborator user, colabEmail: the email of the collaborator 
+ * that will obtain editing abilities 
+ * @req:{'noteID':'','userEmail':'', 'colabEmail':''} 
+ * @res:{success: true} 
+ *       err
+ */
+app.post('/addcollaborators', function(req, res){
+  try {
+    var body = JSON.parse(req.body);
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var noteID = body.noteID;
+  var userEmail = body.userEmail;
+  var colabEmail = body.colabEmail;
+  console.log("noteId:", noteID);
+  console.log("useremail:", userEmail);
+  console.log("colabemail:", colabEmail);
+
+  var userID;
+  var userIdColab;
+
+  //get the userID from userEmail
+  connection.query("SELECT * FROM users WHERE email IN ('" + userEmail + "', '" + colabEmail + "')", function(err, result) {
+    if (err) {
+      res.status(500).send({ success: false, error: err });
+    }
+    else {
+      console.log("Obtained userId from user email");
+      console.log("result:", result);
+      userID = result[0].idUser;
+      userIdColab = result[1].idUser;
+      console.log("userId:", userID);
+      var collaborator = {
+        noteID: noteID,
+        userID: userID,
+        userIdColab: userIdColab
+      };
+      console.log("collaborator: ", collaborator);
+      connection.query("INSERT INTO collaborators SET ?", [collaborator], function (err, result) {
+        console.log("goes in here");
+        if (err) {
+          res.status(500).send({ success: false, error: err });
+        }
+        else {
+          console.log("created row in the collaborator table");
+          res.status(200).send({success: true});
+        }
+      });
+    }
+  });
+});
+
 /**
  * Upload profile picture using multer
  * File input field name is simply 'file'
