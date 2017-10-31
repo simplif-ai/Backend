@@ -62,6 +62,34 @@ function authorize(credentials, code, callback) {
   */
 }
 
+function getOauth(token, callback) {
+  console.log('hello');
+
+  fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
+    if (err) {
+      console.log('Error loading client secret file: ' + err);
+      return;
+    }
+
+      var credentials = JSON.parse(content);
+
+      var clientSecret = credentials.client_secret;
+      var clientId = credentials.client_id;
+      var redirectUrl = credentials.redirect_uris[0];
+      console.log('after vars');
+      var auth = new googleAuth();
+      console.log('after auth');
+      var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
+      console.log('in get oauth');
+      console.log(oauth2Client);
+      oauth2Client.credentials = token;
+      callback(oauth2Client);
+  });
+
+
+ 
+}
+
 /**
  * Get and store new token after prompting for user authorization, and then
  * execute the given callback with the authorized OAuth2 client.
@@ -126,29 +154,35 @@ googledrive.post('/exportToDrive', function (req, res) {
 /**
 * Upload the given summary to the user's google drive account
 */
-function upload(title, text, auth) {
-  var drive = google.drive('v2');
-  var fileMetadata = {
-    'title': title,
-    'mimeType': 'application/vnd.google-apps.document'
-  };
-  var media = {
-    mimeType: 'text/plain',
-    body: text
-  };
-  drive.files.insert({
-    auth: auth,
-    resource: fileMetadata,
-    media: media,
-    fields: 'id'
-  }, function (err, file) {
-    if (err) {
-      // Handle error
-      console.error(err);
-    } else {
-      console.log('File Id:', file.id);
-    }
-  });
+function upload(title, text, token, callback) {
+  getOauth(token, function (auth) {
+      console.log('in upload');
+      console.log(auth);
+      var drive = google.drive('v2');
+      var fileMetadata = {
+        'title': title,
+        'mimeType': 'application/vnd.google-apps.document'
+      };
+      var media = {
+        mimeType: 'text/plain',
+        body: text
+      };
+      drive.files.insert({
+        auth: auth,
+        resource: fileMetadata,
+        media: media,
+        fields: 'id'
+      }, function (err, file) {
+          console.log('in insert');
+        if (err) {
+          callback(err, false);
+          // Handle error
+        } else {
+          callback("", true)
+          console.log('File Id:', file.id);
+        }
+      });
+  }); 
 }
 
 /**
@@ -156,6 +190,7 @@ function upload(title, text, auth) {
  *
  * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
  */
+ /*
 function listFiles(auth) {
   var service = google.drive('v2');
   service.files.list({
@@ -180,8 +215,9 @@ function listFiles(auth) {
     }
   });
 }
-
+*/
 module.exports = {
   "googledrive": googledrive,
-  "authenticateUser": authenticateUser
+  "authenticateUser": authenticateUser,
+  "upload": upload
 }

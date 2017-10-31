@@ -246,31 +246,31 @@ app.post('/loginToGoogle', function(req, res) {
 /**
 * Exports the summary to the user's google drive
 * @param: req = {text, googleToken}
-* @return: res = {authorizeURL, success, googleToken}
+* @return: res = {success}
 */
 app.post('/exportToDrive', function (req, res) {
   try {
     var body = JSON.parse(req.body);
-
-  } catch(error) {
-      res.status(500).send({success: false, error: err});
-  }
-
-  try {
+    console.log('body');
+    var title = body.title;
+    console.log('title');
     var text = body.text;
-  } catch (error) {
-    res.status(500).send({success: false, error: err});
+    console.log('text');
+    var googleToken = body.googleToken;
+    console.log('token');
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
   }
 
-  try {
-    var googleToken = body.googleCode;
-  } catch (error) {
-    res.status(500).send({success: false, error: err});
-  }
-
-  
-
-  console.log('in google drive post');
+//(title, text, auth)
+  googledrive.upload(title, text, googleToken, function(error, success) {
+    if (error || !success) {
+      res.status(500).send({success: false, error: error});
+    } else {
+      res.status(200).send({success: true});
+    }
+  });
 });
 
 app.post('/login', function(req, res) {
@@ -279,7 +279,8 @@ app.post('/login', function(req, res) {
   try {
     var user = JSON.parse(req.body);
   } catch (error) {
-    res.status(500).send({ success: false, error: err });
+    res.status(500).send({success: false, error: error});
+    return;
   }
 
   var email = user.email;
