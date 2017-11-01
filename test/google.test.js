@@ -84,7 +84,6 @@ describe('Google Drive Add Collaborator', () => {
   });
 });
 
-//function authenticateUser(code, callback) {
 
 describe('Google Drive Authenticate User', () => {
   it('Should error and return authentication url without googleToken', () => {
@@ -93,5 +92,4 @@ describe('Google Drive Authenticate User', () => {
       done(assert.notEqual(authorizeURL, null));
     });
   });
-
 });
