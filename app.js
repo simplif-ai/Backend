@@ -1,5 +1,5 @@
 /**
- * midlle ware to connect frontend with api for summarizer
+ * middle ware to connect frontend with api for summarizer
  * creates all dependencies and endpoints
  * Author: Lena Arafa
  * Date: 9/24/2017
@@ -251,13 +251,9 @@ app.post('/loginToGoogle', function(req, res) {
 app.post('/exportToDrive', function (req, res) {
   try {
     var body = JSON.parse(req.body);
-    console.log('body');
     var title = body.title;
-    console.log('title');
     var text = body.text;
-    console.log('text');
     var googleToken = body.googleToken;
-    console.log('token');
   } catch(error) {
       res.status(500).send({success: false, error: error});
       return;
@@ -267,6 +263,31 @@ app.post('/exportToDrive', function (req, res) {
   googledrive.upload(title, text, googleToken, function(error, success) {
     if (error || !success) {
       res.status(500).send({success: false, error: error});
+    } else {
+      res.status(200).send({success: true});
+    }
+  });
+});
+
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {name, googleToken}
+* @return: res = {success}
+*/
+app.post('/createFolder', function (req, res) {
+ try {
+    var body = JSON.parse(req.body);
+    var name = body.name;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+//(name, token, callback) 
+  googledrive.createFolder(name, googleToken, function(err, success) {
+    if (err) {
+      res.status(500).send({success: false, error: err});
     } else {
       res.status(200).send({success: true});
     }

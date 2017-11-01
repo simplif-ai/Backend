@@ -4,8 +4,10 @@ var google = require('googleapis');
 var googleAuth = require('google-auth-library');
 const express = require('express');
 const googledrive = express();
+const async = require('async');
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/drive-nodejs-quickstart.json
+// 'https://www.googleapis.com/auth/plus.profiles.read'
 var SCOPES = ['https://www.googleapis.com/auth/drive'];
 var TOKEN_DIR = './src/Google/' + (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
@@ -26,6 +28,11 @@ function authenticateUser(code, callback) {
 }
 
 
+
+function getUser() {
+  //https://www.googleapis.com/plus/v1/people/{userId}
+
+}
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
@@ -41,25 +48,8 @@ function authorize(credentials, code, callback) {
   var auth = new googleAuth();
   var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
 
+  oauth2Client.key = credentials.key;
   getNewToken(oauth2Client, code, callback);
-  
-
-  /*
-  // Check if we have previously stored a token.
-  fs.readFile(TOKEN_PATH, function(err, token) {
-    //force get a new token:
-    //getNewToken(oauth2Client, callback);
-    
-    //if the user is not authenticated, we need to tell Audrey to get them a new token:
-    if (err) {
-      getNewToken(oauth2Client, callback);
-    } else {
-      oauth2Client.credentials = JSON.parse(token);
-      callback(oauth2Client);
-    }
-    
-  });
-  */
 }
 
 function getOauth(token, callback) {
@@ -80,9 +70,9 @@ function getOauth(token, callback) {
       var auth = new googleAuth();
       console.log('after auth');
       var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
-      console.log('in get oauth');
-      console.log(oauth2Client);
       oauth2Client.credentials = token;
+      //console.log(oauth2Client);
+      console.log('calling callback with client');
       callback(oauth2Client);
   });
 
@@ -120,36 +110,222 @@ function getNewToken(oauth2Client, code, callback) {
         //callback(oauth2Client);
       });
   }
-
-
-
-  
-  /*
-  console.log('Authorize this app by visiting this url: ', authUrl);
-  var rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  rl.question('Enter the code from that page here: ', function(code) {
-    rl.close();
-    oauth2Client.getToken(code, function(err, token) {
-      if (err) {
-        console.log('Error while trying to retrieve access token', err);
-        return;
-      }
-      oauth2Client.credentials = token;
-      storeToken(token);
-      //callback(oauth2Client);
-    });
-  });
-  */
 }
 
-//endpoint for uploading text
-googledrive.post('/exportToDrive', function (req, res) {
-  console.log('in google drive post');
-});
+/**
+* Create the given folder inside of the base Simplif.ai folder
+*/
+function createFolder(name, token, callback) {
+  //always create folders inside the base 'simplif.ai folder'
+  console.log('inside create folder');
+  getSimplifaiFolder(token, function(err, folder) {
+
+    if (err) {
+      callback(err);
+    } else {
+        var drive = google.drive('v2');
+
+        getOauth(token, function (auth) {
+          console.log('after get auth callback');
+          var fileMetadata = {
+            'title': name,
+            parents: [{id: folder}],
+            'mimeType': 'application/vnd.google-apps.folder'
+          };
+
+          console.log('inside create folder with auth: ' + auth);
+          drive.files.insert({
+            auth: auth,
+            resource: fileMetadata,
+            fields: 'id'
+          }, function (err, file) {
+            if (err) {
+              // Handle error
+              callback(err, false);
+              console.error(err);
+            } else {
+              callback("", true);
+              console.log('Folder Id: ', file.id);
+            }
+          });
+      });
+    }
+  }); 
+}
+
+/**
+* Adds a collaborater to the given summary file
+*/
+
+function addCollaborator(token, fileId, collaboratorEmail) {
+  var permissions = [
+    {
+      'type': 'user',
+      'role': 'writer',
+      'emailAddress': collaboratorEmail
+    }
+  ];
+  // Using the NPM module 'async'
+  async.eachSeries(permissions, function (permission, permissionCallback) {
+    drive.permissions.create({
+      resource: permission,
+      auth: auth,
+      fileId: fileId,
+      fields: 'id',
+    }, function (err, res) {
+      if (err) {
+        // Handle error...
+        console.error(err);
+        permissionCallback(err);
+      } else {
+        console.log('Permission ID: ', res.id)
+        permissionCallback();
+      }
+    });
+  }, function (err) {
+    if (err) {
+      // Handle error
+      console.error(err);
+    } else {
+      // All permissions inserted
+    }
+  });
+}
+
+/**
+* Retrieves the folder ID of Simplif.ai base folder and creates it if it doesn't exist
+*/
+function getSimplifaiFolder(token, callback) {
+  getOauth(token, function (auth) {
+    console.log('in get simplifai after get oath');
+    var pageToken = null;
+    var drive = google.drive('v3');
+    // and mimeType='application/vnd.google-apps.folder'
+
+
+    var pageToken = null;
+    var results = [];
+    // Using the npm module 'async'
+    async.doWhilst(function (callback) {
+      console.log('in do while');
+      drive.files.list({
+        q: "name='Simplif.ai' and mimeType='application/vnd.google-apps.folder'",
+        fields: 'nextPageToken, files(id, name)',
+        spaces: 'drive',
+        auth: auth,
+        pageToken: pageToken
+      }, function (err, res) {
+        if (err) {
+          // Handle error
+          console.error(err);
+          callback(err)
+        } else {
+          res.files.forEach(function (file) {
+            console.log('Found file: ', file.name, file.id);
+            results.push(file.id);
+          });
+          pageToken = res.nextPageToken;
+          callback();
+        }
+      });
+    }, function () {
+      return !!pageToken;
+    }, function (err) {
+      if (err) {
+        // Handle error
+        console.error(err);
+      } else {
+        // All pages fetched
+        console.log('all pages fetched');
+        if (results.length == 0) {
+          //make the folder...
+          createSimplifaiFolder(token, function(fileID, err) {
+              if (err) {
+                callback(err, "");
+              } else {
+                callback("", fileID);
+              }
+          });
+        } else {
+          //return simplif.ai folder
+          callback("", results[0]);
+        }
+      }
+    });
+
+
+
+
+/*
+    ////////////
+    drive.files.list({
+      q: "mimeType='application/vnd.google-apps.folder'",
+      auth: auth,
+      spaces: 'drive'
+      //spaces: 'drive'
+      //fields: 'nextPageToken, files(id, name)',
+      //spaces: 'drive',
+      //pageToken: pageToken
+    }, function (err, res) {
+      if (err) {
+        // Handle error
+        console.error(err);
+        callback(err, res)
+      } else {
+        console.log(res);
+        if (res.items.length < 1) {
+          //we didn't find the folder... make it!
+          createSimplifaiFolder(token, function(fileID, err) {
+              if (err) {
+                callback(err, "");
+              } else {
+                callback("", fileID);
+              }
+          });
+        } else {
+          res.items.forEach(function (file) {
+            console.log('Found file: ', file.name, file.id);
+          });
+          pageToken = res.nextPageToken;
+          callback("", res.files[0].id);
+        }
+        
+      }
+    });
+    */
+    
+  });
+}
+
+/**
+* Creates the base Simplif.ai folder where all notes are contained
+*/
+function createSimplifaiFolder(token, callback) {
+    console.log('token is' + token);
+    var drive = google.drive('v2');
+
+    getOauth(token, function (auth) {
+    var fileMetadata = {
+    'title': 'Simplif.ai', 
+    'mimeType': 'application/vnd.google-apps.folder'
+    };
+    console.log('inside create simplifai with auth: ' + auth);
+
+    drive.files.insert({
+      auth: auth,
+      resource: fileMetadata,
+      fields: 'id'
+    }, function (err, file) {
+      if (err) {
+        callback("", err)
+        console.error(err);
+      } else {
+        callback(file.id, "")
+        console.log('Folder Id: ', file.id);
+      }
+    });
+  });
+}
 
 /**
 * Upload the given summary to the user's google drive account
@@ -158,15 +334,19 @@ function upload(title, text, token, callback) {
   getOauth(token, function (auth) {
       console.log('in upload');
       console.log(auth);
+
       var drive = google.drive('v2');
+
       var fileMetadata = {
         'title': title,
         'mimeType': 'application/vnd.google-apps.document'
       };
+
       var media = {
         mimeType: 'text/plain',
         body: text
       };
+
       drive.files.insert({
         auth: auth,
         resource: fileMetadata,
@@ -184,6 +364,8 @@ function upload(title, text, token, callback) {
       });
   }); 
 }
+
+
 
 /**
  * Lists the names and IDs of up to 10 files.
@@ -219,5 +401,6 @@ function listFiles(auth) {
 module.exports = {
   "googledrive": googledrive,
   "authenticateUser": authenticateUser,
-  "upload": upload
+  "upload": upload,
+  "createFolder": createFolder
 }
