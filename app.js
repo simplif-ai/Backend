@@ -297,6 +297,35 @@ app.post('/addCollaborator', function (req, res) {
   });
 });
 
+
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {googleToken, email}
+* @return: res = {error?, profilePictureURL}
+*/
+app.post('/getGoogleProfilePicture', function (req, res) {
+   try {
+    var body = JSON.parse(req.body);
+    var email = body.email;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  googledrive.getProfilePicture(googleToken, email, function(err, url) {
+    console.log(url);
+      if (err != null) {
+        res.status(500).send({error: err});
+      } else {
+        res.status(500).send({error: null, profilePictureURL: url});
+      }
+  });
+});
+
+//function getProfilePicture(emailAddress, callback) {
+
+
 /**
 * Creates a folder inside the base Simplif.ai folder
 * @param: req = {name, googleToken}

@@ -5,10 +5,13 @@ var googleAuth = require('google-auth-library');
 const express = require('express');
 const googledrive = express();
 const async = require('async');
+const request = require('request');
 // If modifying these scopes, delete your previously saved credentials
 // at ~/.credentials/drive-nodejs-quickstart.json
 // 'https://www.googleapis.com/auth/plus.profiles.read'
-var SCOPES = ['https://www.googleapis.com/auth/drive'];
+//https://www.googleapis.com/auth/plus.me
+//'https://www.googleapis.com/auth/drive', 
+var SCOPES = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/plus.profiles.read'];
 var TOKEN_DIR = './src/Google/' + (process.env.HOME || process.env.HOMEPATH ||
     process.env.USERPROFILE) + '/.credentials/';
 var TOKEN_PATH = TOKEN_DIR + 'drive-nodejs-quickstart.json';
@@ -28,11 +31,55 @@ function authenticateUser(code, callback) {
 }
 
 
+/**
+* Call the Google API profile picture endpoint and return the URL to the profile picture
+*/
+function getProfilePicture(token, emailAddress, callback) {
 
-function getUser() {
-  //https://www.googleapis.com/plus/v1/people/{userId}
+  //https://www.google.com/m8/feeds/contacts/default/thin?q=EMAIL_ADDRESS_HERE
 
-}
+
+  //var addr = 'https://www.googleapis.com/admin/directory/v1/users/userKey/photos/thumbnail'
+  //var addr = 'https://www.googleapis.com/plusDomains/v1/people/sdblatz@gmail.com'
+  var addr = 'http://picasaweb.google.com/data/entry/api/user/' + emailAddress + '?alt=json'
+  //var addr = 'https://www.google.com/m8/feeds/contacts/default/thin?q=sdblatz@gmail.com'
+  getOauth(token, function (auth) {
+    //"Content-Type: application/json" -H "Authorization: OAuth$ACCESS_TOKEN"
+    console.log('token is: ' + token.access_token);
+    console.log(auth);
+
+    /*
+    request({
+      //https://www.googleapis.com/oauth2/v1/tokeninfo
+
+      //https://www.googleapis.com/plusDomains/v1/people/me
+      uri: 'https://www.googleapis.com/plusDomains/v1/people/me',
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': auth.credentials
+        }
+    }, function(error, response, body) {
+        console.log(error)
+        //console.log(response);
+        console.log(body);
+    });
+    */
+
+    
+    request(addr, function(error, response, body) {
+      var body = JSON.parse(body);
+      console.log(error);
+      console.log(body);
+      var url = body.entry.gphoto$thumbnail.$t;
+
+      callback(error, url)
+    });
+    
+  });
+  
+};
+
 /**
  * Create an OAuth2 client with the given credentials, and then execute the
  * given callback function.
@@ -53,8 +100,6 @@ function authorize(credentials, code, callback) {
 }
 
 function getOauth(token, callback) {
-  console.log('hello');
-
   fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
     if (err) {
       console.log('Error loading client secret file: ' + err);
@@ -133,7 +178,6 @@ function createFolder(name, token, callback) {
             'mimeType': 'application/vnd.google-apps.folder'
           };
 
-          console.log('inside create folder with auth: ' + auth);
           drive.files.insert({
             auth: auth,
             resource: fileMetadata,
@@ -364,5 +408,6 @@ module.exports = {
   "authenticateUser": authenticateUser,
   "upload": upload,
   "createFolder": createFolder,
-  "addCollaborator": addCollaborator
+  "addCollaborator": addCollaborator,
+  "getProfilePicture": getProfilePicture
 }
