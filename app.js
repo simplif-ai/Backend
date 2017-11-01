@@ -270,11 +270,10 @@ app.post('/exportToDrive', function (req, res) {
 });
 
 /**
-* Creates a folder inside the base Simplif.ai folder
+* Adds the collaborator to the fileID
 * @param: req = {googleToken, fileID, collaboratorEmail}
-* @return: res = {success}
+* @return: res = {success, error}
 */
-
 //function addCollaborator(token, fileId, collaboratorEmail, callback) {
 app.post('/addCollaborator', function (req, res) {
   try {
@@ -299,7 +298,7 @@ app.post('/addCollaborator', function (req, res) {
 
 
 /**
-* Creates a folder inside the base Simplif.ai folder
+* Gets the Google profile picture thumbnail
 * @param: req = {googleToken, email}
 * @return: res = {error?, profilePictureURL}
 */
@@ -323,13 +322,11 @@ app.post('/getGoogleProfilePicture', function (req, res) {
   });
 });
 
-//function getProfilePicture(emailAddress, callback) {
-
 
 /**
 * Creates a folder inside the base Simplif.ai folder
 * @param: req = {name, googleToken}
-* @return: res = {success}
+* @return: res = {success, error?}
 */
 app.post('/createFolder', function (req, res) {
  try {
