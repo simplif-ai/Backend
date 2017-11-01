@@ -156,40 +156,45 @@ function createFolder(name, token, callback) {
 /**
 * Adds a collaborater to the given summary file
 */
-
-function addCollaborator(token, fileId, collaboratorEmail) {
-  var permissions = [
-    {
-      'type': 'user',
-      'role': 'writer',
-      'emailAddress': collaboratorEmail
-    }
-  ];
-  // Using the NPM module 'async'
-  async.eachSeries(permissions, function (permission, permissionCallback) {
-    drive.permissions.create({
-      resource: permission,
-      auth: auth,
-      fileId: fileId,
-      fields: 'id',
-    }, function (err, res) {
-      if (err) {
-        // Handle error...
-        console.error(err);
-        permissionCallback(err);
-      } else {
-        console.log('Permission ID: ', res.id)
-        permissionCallback();
-      }
+function addCollaborator(token, fileId, collaboratorEmail, callback) {
+    var drive = google.drive('v3');
+    getOauth(token, function (auth) {
+      var permissions = [
+        {
+          'type': 'user',
+          'role': 'writer',
+          'emailAddress': collaboratorEmail
+        }
+      ];
+      // Using the NPM module 'async'
+      async.eachSeries(permissions, function (permission, permissionCallback) {
+        drive.permissions.create({
+          resource: permission,
+          auth: auth,
+          fileId: fileId,
+          fields: 'id',
+        }, function (err, res) {
+          if (err) {
+            // Handle error...
+            console.error(err);
+            permissionCallback(err);
+          } else {
+            console.log('Permission ID: ', res.id)
+            permissionCallback();
+          }
+        });
+      }, function (err) {
+        if (err) {
+          // Handle error
+          console.error(err);
+          callback(err);
+        } else {
+          console.log('permissions added');
+          callback("")
+          // All permissions inserted
+        }
+      });
     });
-  }, function (err) {
-    if (err) {
-      // Handle error
-      console.error(err);
-    } else {
-      // All permissions inserted
-    }
-  });
 }
 
 /**
@@ -200,8 +205,6 @@ function getSimplifaiFolder(token, callback) {
     console.log('in get simplifai after get oath');
     var pageToken = null;
     var drive = google.drive('v3');
-    // and mimeType='application/vnd.google-apps.folder'
-
 
     var pageToken = null;
     var results = [];
@@ -251,49 +254,7 @@ function getSimplifaiFolder(token, callback) {
           callback("", results[0]);
         }
       }
-    });
-
-
-
-
-/*
-    ////////////
-    drive.files.list({
-      q: "mimeType='application/vnd.google-apps.folder'",
-      auth: auth,
-      spaces: 'drive'
-      //spaces: 'drive'
-      //fields: 'nextPageToken, files(id, name)',
-      //spaces: 'drive',
-      //pageToken: pageToken
-    }, function (err, res) {
-      if (err) {
-        // Handle error
-        console.error(err);
-        callback(err, res)
-      } else {
-        console.log(res);
-        if (res.items.length < 1) {
-          //we didn't find the folder... make it!
-          createSimplifaiFolder(token, function(fileID, err) {
-              if (err) {
-                callback(err, "");
-              } else {
-                callback("", fileID);
-              }
-          });
-        } else {
-          res.items.forEach(function (file) {
-            console.log('Found file: ', file.name, file.id);
-          });
-          pageToken = res.nextPageToken;
-          callback("", res.files[0].id);
-        }
-        
-      }
-    });
-    */
-    
+    }); 
   });
 }
 
@@ -402,5 +363,6 @@ module.exports = {
   "googledrive": googledrive,
   "authenticateUser": authenticateUser,
   "upload": upload,
-  "createFolder": createFolder
+  "createFolder": createFolder,
+  "addCollaborator": addCollaborator
 }

@@ -271,6 +271,34 @@ app.post('/exportToDrive', function (req, res) {
 
 /**
 * Creates a folder inside the base Simplif.ai folder
+* @param: req = {googleToken, fileID, collaboratorEmail}
+* @return: res = {success}
+*/
+
+//function addCollaborator(token, fileId, collaboratorEmail, callback) {
+app.post('/addCollaborator', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+    var fileID = body.fileID;
+    var collaboratorEmail = body.collaboratorEmail;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  //TODO: store the collaborator's email in our database
+  googledrive.addCollaborator(googleToken, fileID, collaboratorEmail, function(error) {
+    if (error == "") {
+      res.status(200).send({success: true});
+    } else {
+      res.status(500).send({success: false, error: error});
+    }
+  });
+});
+
+/**
+* Creates a folder inside the base Simplif.ai folder
 * @param: req = {name, googleToken}
 * @return: res = {success}
 */
