@@ -289,7 +289,7 @@ app.post('/addCollaborator', function (req, res) {
 
   //TODO: store the collaborator's email in our database
   googledrive.addCollaborator(googleToken, fileID, collaboratorEmail, function(error) {
-    if (error == "") {
+    if (error != null) {
       res.status(200).send({success: true});
     } else {
       res.status(500).send({success: false, error: error});

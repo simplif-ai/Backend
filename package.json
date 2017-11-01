@@ -23,6 +23,7 @@
     "run-sequence": "^1.2.2"
   },
   "dependencies": {
+    "assert": "^1.4.1",
     "async": "^2.5.0",
     "body-parser": "^1.18.2",
     "eslint": "^4.10.0",
@@ -30,6 +31,7 @@
     "google-auth-library": "^0.11.0",
     "jade": "~1.11.0",
     "jsonwebtoken": "^8.0.1",
+    "mocha": "^4.0.1",
     "mysql": "^2.14.1",
     "nconf": "^0.8.4",
     "nconf-yaml": "^1.0.2",

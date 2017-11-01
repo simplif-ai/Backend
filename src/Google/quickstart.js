@@ -20,7 +20,6 @@ function authenticateUser(code, callback) {
   // Load client secrets from a local file.
   fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
     if (err) {
-      console.log('Error loading client secret file: ' + err);
       return;
     }
 
@@ -45,8 +44,6 @@ function getProfilePicture(token, emailAddress, callback) {
   //var addr = 'https://www.google.com/m8/feeds/contacts/default/thin?q=sdblatz@gmail.com'
   getOauth(token, function (auth) {
     //"Content-Type: application/json" -H "Authorization: OAuth$ACCESS_TOKEN"
-    console.log('token is: ' + token.access_token);
-    console.log(auth);
 
     /*
     request({
@@ -69,8 +66,6 @@ function getProfilePicture(token, emailAddress, callback) {
     
     request(addr, function(error, response, body) {
       var body = JSON.parse(body);
-      console.log(error);
-      console.log(body);
       var url = body.entry.gphoto$thumbnail.$t;
 
       callback(error, url)
@@ -88,7 +83,6 @@ function getProfilePicture(token, emailAddress, callback) {
  * @param {function} callback The callback to call with the authorized client.
  */
 function authorize(credentials, code, callback) {
-  console.log('inside authorize');
   var clientSecret = credentials.client_secret;
   var clientId = credentials.client_id;
   var redirectUrl = credentials.redirect_uris[0];
@@ -102,26 +96,19 @@ function authorize(credentials, code, callback) {
 function getOauth(token, callback) {
   fs.readFile('./src/Google/client_secret.json', function processClientSecrets(err, content) {
     if (err) {
-      console.log('Error loading client secret file: ' + err);
       return;
     }
 
       var credentials = JSON.parse(content);
-
       var clientSecret = credentials.client_secret;
       var clientId = credentials.client_id;
       var redirectUrl = credentials.redirect_uris[0];
-      console.log('after vars');
       var auth = new googleAuth();
-      console.log('after auth');
       var oauth2Client = new auth.OAuth2(clientId, clientSecret, redirectUrl);
       oauth2Client.credentials = token;
       //console.log(oauth2Client);
-      console.log('calling callback with client');
       callback(oauth2Client);
   });
-
-
  
 }
 
@@ -139,14 +126,12 @@ function getNewToken(oauth2Client, code, callback) {
     scope: SCOPES
   });
 
-  console.log('code is: ' + code);
   if (code == "") {
     //just return the url we need to get the code
     callback(false, authUrl, "");
   } else {
       oauth2Client.getToken(code, function(err, token) {
         if (err) {
-          console.log('Error while trying to retrieve access token', err);
           return;
         }
         oauth2Client.credentials = token;
@@ -162,7 +147,6 @@ function getNewToken(oauth2Client, code, callback) {
 */
 function createFolder(name, token, callback) {
   //always create folders inside the base 'simplif.ai folder'
-  console.log('inside create folder');
   getSimplifaiFolder(token, function(err, folder) {
 
     if (err) {
@@ -171,7 +155,6 @@ function createFolder(name, token, callback) {
         var drive = google.drive('v2');
 
         getOauth(token, function (auth) {
-          console.log('after get auth callback');
           var fileMetadata = {
             'title': name,
             parents: [{id: folder}],
@@ -188,8 +171,7 @@ function createFolder(name, token, callback) {
               callback(err, false);
               console.error(err);
             } else {
-              callback("", true);
-              console.log('Folder Id: ', file.id);
+              callback(null, file);
             }
           });
       });
@@ -223,7 +205,6 @@ function addCollaborator(token, fileId, collaboratorEmail, callback) {
             console.error(err);
             permissionCallback(err);
           } else {
-            console.log('Permission ID: ', res.id)
             permissionCallback();
           }
         });
@@ -233,8 +214,7 @@ function addCollaborator(token, fileId, collaboratorEmail, callback) {
           console.error(err);
           callback(err);
         } else {
-          console.log('permissions added');
-          callback("")
+          callback(null)
           // All permissions inserted
         }
       });
@@ -246,7 +226,6 @@ function addCollaborator(token, fileId, collaboratorEmail, callback) {
 */
 function getSimplifaiFolder(token, callback) {
   getOauth(token, function (auth) {
-    console.log('in get simplifai after get oath');
     var pageToken = null;
     var drive = google.drive('v3');
 
@@ -254,7 +233,6 @@ function getSimplifaiFolder(token, callback) {
     var results = [];
     // Using the npm module 'async'
     async.doWhilst(function (callback) {
-      console.log('in do while');
       drive.files.list({
         q: "name='Simplif.ai' and mimeType='application/vnd.google-apps.folder'",
         fields: 'nextPageToken, files(id, name)',
@@ -268,7 +246,6 @@ function getSimplifaiFolder(token, callback) {
           callback(err)
         } else {
           res.files.forEach(function (file) {
-            console.log('Found file: ', file.name, file.id);
             results.push(file.id);
           });
           pageToken = res.nextPageToken;
@@ -283,7 +260,6 @@ function getSimplifaiFolder(token, callback) {
         console.error(err);
       } else {
         // All pages fetched
-        console.log('all pages fetched');
         if (results.length == 0) {
           //make the folder...
           createSimplifaiFolder(token, function(fileID, err) {
@@ -306,15 +282,13 @@ function getSimplifaiFolder(token, callback) {
 * Creates the base Simplif.ai folder where all notes are contained
 */
 function createSimplifaiFolder(token, callback) {
-    console.log('token is' + token);
     var drive = google.drive('v2');
 
     getOauth(token, function (auth) {
     var fileMetadata = {
-    'title': 'Simplif.ai', 
-    'mimeType': 'application/vnd.google-apps.folder'
+      'title': 'Simplif.ai', 
+      'mimeType': 'application/vnd.google-apps.folder'
     };
-    console.log('inside create simplifai with auth: ' + auth);
 
     drive.files.insert({
       auth: auth,
@@ -326,7 +300,6 @@ function createSimplifaiFolder(token, callback) {
         console.error(err);
       } else {
         callback(file.id, "")
-        console.log('Folder Id: ', file.id);
       }
     });
   });
@@ -337,9 +310,6 @@ function createSimplifaiFolder(token, callback) {
 */
 function upload(title, text, token, callback) {
   getOauth(token, function (auth) {
-      console.log('in upload');
-      console.log(auth);
-
       var drive = google.drive('v2');
 
       var fileMetadata = {
@@ -358,13 +328,11 @@ function upload(title, text, token, callback) {
         media: media,
         fields: 'id'
       }, function (err, file) {
-          console.log('in insert');
         if (err) {
           callback(err, false);
           // Handle error
         } else {
-          callback("", true)
-          console.log('File Id:', file.id);
+          callback(null, true)
         }
       });
   }); 
