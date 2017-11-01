@@ -135,7 +135,7 @@ function getNewToken(oauth2Client, code, callback) {
           return;
         }
         oauth2Client.credentials = token;
-        callback(true, "", token);
+        callback(true, null, token);
         //storeToken(token);
         //callback(oauth2Client);
       });
@@ -150,7 +150,7 @@ function createFolder(name, token, callback) {
   getSimplifaiFolder(token, function(err, folder) {
 
     if (err) {
-      callback(err);
+      callback(err, null);
     } else {
         var drive = google.drive('v2');
 
@@ -168,9 +168,9 @@ function createFolder(name, token, callback) {
           }, function (err, file) {
             if (err) {
               // Handle error
-              callback(err, false);
-              console.error(err);
+              callback(err, null);
             } else {
+              console.log(file.id);
               callback(null, file);
             }
           });
@@ -202,7 +202,6 @@ function addCollaborator(token, fileId, collaboratorEmail, callback) {
         }, function (err, res) {
           if (err) {
             // Handle error...
-            console.error(err);
             permissionCallback(err);
           } else {
             permissionCallback();
@@ -211,7 +210,6 @@ function addCollaborator(token, fileId, collaboratorEmail, callback) {
       }, function (err) {
         if (err) {
           // Handle error
-          console.error(err);
           callback(err);
         } else {
           callback(null)
@@ -242,7 +240,6 @@ function getSimplifaiFolder(token, callback) {
       }, function (err, res) {
         if (err) {
           // Handle error
-          console.error(err);
           callback(err)
         } else {
           res.files.forEach(function (file) {
@@ -257,7 +254,7 @@ function getSimplifaiFolder(token, callback) {
     }, function (err) {
       if (err) {
         // Handle error
-        console.error(err);
+        callback(err);
       } else {
         // All pages fetched
         if (results.length == 0) {
@@ -296,10 +293,9 @@ function createSimplifaiFolder(token, callback) {
       fields: 'id'
     }, function (err, file) {
       if (err) {
-        callback("", err)
-        console.error(err);
+        callback(null, err)
       } else {
-        callback(file.id, "")
+        callback(file.id, null)
       }
     });
   });
@@ -338,39 +334,6 @@ function upload(title, text, token, callback) {
   }); 
 }
 
-
-
-/**
- * Lists the names and IDs of up to 10 files.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
- /*
-function listFiles(auth) {
-  var service = google.drive('v2');
-  service.files.list({
-    auth: auth,
-    maxResults: 10,
-  }, function(err, response) {
-    if (err) {
-      console.log('The API returned an error: ' + err);
-      return;
-    }
-
-    upload('Lit af fam.', auth);
-    var files = response.items;
-    if (files.length == 0) {
-      console.log('No files found.');
-    } else {
-      console.log('Files:');
-      for (var i = 0; i < files.length; i++) {
-        var file = files[i];
-        console.log('%s (%s)', file.title, file.id);
-      }
-    }
-  });
-}
-*/
 module.exports = {
   "googledrive": googledrive,
   "authenticateUser": authenticateUser,

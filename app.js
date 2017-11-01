@@ -337,6 +337,7 @@ app.post('/createFolder', function (req, res) {
     var name = body.name;
     var googleToken = body.googleToken;
   } catch(error) {
+      console.log(error);
       res.status(500).send({success: false, error: error});
       return;
   }
