@@ -99,7 +99,6 @@ Send:
 
 }
 
-### /deleteSummary
 
 ## /savenotes
 Receives:
