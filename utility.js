@@ -7,12 +7,6 @@ const mysql = require('mysql');
 //const nodemailer = require('nodemailer');
 const multer = require('multer');
 
-app.use(function (req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-
 //setup upload 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
