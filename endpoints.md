@@ -76,6 +76,9 @@ sucess: "true"
 error: "Email doesn't exist." //optional
 }
 
+
+### /addpicture
+
 ### /savesummary
 Receives:
 
@@ -98,25 +101,3 @@ Send:
     error: "error saving to db"
 
 }
-
-### /deleteSummary
-
-## /savenotes
-Receives:
-
-{
-    "noteId": 13,
-    "noteText": "Hi this is a note text"
-
-}
-
-Send:
-
-{
-
-    success: "true",
-
-    error: "error saving to db"
-
-}
-
