@@ -317,11 +317,43 @@ app.post('/getGoogleProfilePicture', function (req, res) {
       if (err != null) {
         res.status(500).send({error: err});
       } else {
-        res.status(500).send({error: null, profilePictureURL: url});
+        res.status(200).send({error: null, profilePictureURL: url});
       }
   });
 });
 
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {darkMode, userID}
+* @return: res = {success, error?}
+*/
+app.post('/setDarkMode', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+    var darkMode = body.darkMode;
+    var userID = body.userID;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  connection.query("UPDATE users SET darkMode = ? WHERE userId = ?", [darkMode, userId], function (err, result) {
+    if (err) {
+      res.status(500).send({success: false, error: error});
+    } else {
+       res.status(200).send({error: null, success: true});
+    }
+  });
+});
+
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {userID}
+* @return: res = {darkMode, error?}
+*/
+app.post('/getDarkMode', function (req, res) {
+
+});
 
 /**
 * Creates a folder inside the base Simplif.ai folder
@@ -349,6 +381,12 @@ app.post('/createFolder', function (req, res) {
   });
 });
 
+/**
+* Logs a user in
+* @param: req = {email, password}
+* @return: res = {success, error?, user}
+* user is the user object with all of its fields as stored in the database 
+*/
 app.post('/login', function(req, res) {
   //login without google API
   //email and password given
@@ -363,8 +401,6 @@ app.post('/login', function(req, res) {
   var password = user.password;
   var hashedPassword = hash(password);
 
-  //scrypt.kdf(password, )
-  //check hashed password against database:
   connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
     if (err) {
       res.status(500).send({ success: false, error: err });
@@ -378,8 +414,15 @@ app.post('/login', function(req, res) {
         expiresIn: 60 * 60 * 24 // expires in 24 hours
       });
 
-      googledrive.authenticateUser(function(success, authorizeURL, googleToken) {
+      if (result.length == 1) {
+        res.status(200).send({success: true, token, user: result[0]});
+      } else {
+        res.status(500).send({success: false, error: "Username or password is incorrect."});
 
+      }
+
+/*
+      googledrive.authenticateUser(function(success, authorizeURL, googleToken) {
         if (result.length == 1) {
           res.status(200).send({success: true, token: token, googleToken: googleToken});
         } else {
@@ -387,6 +430,7 @@ app.post('/login', function(req, res) {
         }
 
       });
+      */
     }
   });
 });
