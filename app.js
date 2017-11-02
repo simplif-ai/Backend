@@ -275,43 +275,6 @@ app.post('/addpicture', upload.single('file'), function(req, res, err){
 })
 
 /**
- * Gets the path of the user's picture stored in the db
- * @req:{'email': ''}
- * @res:{success: true} 
- *       err
- **/
-app.post('/getpicture', function(req, res, err){
-  try {
-    var body = JSON.parse(req.body);
-  } catch (err) {
-    res.status(500).send({ success: false, error: err });
-  }
-  var userEmail = body.email;
-  if(err) {
-    res.status(500).send({ success: false, error: err });
-  }
-  else {
-    //query db for picturepath
-    connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result) {
-      console.log("gets here1");
-      console.log("result:", result);
-      if (err) {
-			  res.status(500).send({ success: false, error: err });
-		  }
-      else {
-        console.log("Obtained userId from user email");
-        var picturePath = result[0].picturePath;
-        try {
-          res.sendFile(picturePath);
-        }catch(err) {
-          res.status(500).send({ success: false, error: err });
-        }
-      }
-    });
-  }
-});
-
-/**
 *** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
 **/
 //Google authentication setup
