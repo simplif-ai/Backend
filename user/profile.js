@@ -16,7 +16,7 @@ module.exports = function (app) {
             res.status(500).send({ success: false, error: err });
         }
         var email = user.email;
-        console.log('req.body', JSON.parse(req.body));
+        //console.log('req.body', JSON.parse(req.body));
         connection.query("SELECT * FROM users WHERE email = ?", [email], function (err, result) {
             if (result.length == 0) {
                 res.status(500).send({ success: false, error: "This email address doesn't exist." });
@@ -35,7 +35,7 @@ module.exports = function (app) {
 
             } else {
                 //more than one user?
-                console.log("More than one user found...");
+                //console.log("More than one user found...");
             }
         });
     });
@@ -52,7 +52,7 @@ module.exports = function (app) {
 
         if (user.newEmail != null) {
             //update email
-            console.log("Update email");
+            //console.log("Update email");
             //  'UPDATE employees SET location = ? Where ID = ?',
 
             connection.query("UPDATE users SET email = ? WHERE email = ?", [user.newEmail, user.email], function (err, result) {
@@ -62,12 +62,12 @@ module.exports = function (app) {
             });
 
         } else {
-            console.log("email not updated");
+            //console.log("email not updated");
         }
 
         if (user.newName != null) {
             //update name
-            console.log("Update name");
+            //console.log("Update name");
             connection.query("UPDATE users SET name = ? WHERE email = ?", [user.newName, user.email], function (err, result) {
                 if (err) {
                     res.status(500).send({ success: false, error: err })
@@ -76,7 +76,7 @@ module.exports = function (app) {
             });
 
         } else {
-            console.log("name not updated");
+            //console.log("name not updated");
 
         }
 
@@ -147,14 +147,14 @@ module.exports = function (app) {
         try {
             var body = JSON.parse(req.body);
         } catch (error) {
-            res.status(500).send({ success: false, error: err });
+            res.status(500).send({ success: false, error: error });
         }
         var noteID = body.noteID;
         var userEmail = body.userEmail;
         var colabEmail = body.colabEmail;
-        console.log("noteId:", noteID);
-        console.log("useremail:", userEmail);
-        console.log("colabemail:", colabEmail);
+        //console.log("noteId:", noteID);
+        //console.log("useremail:", userEmail);
+        //console.log("colabemail:", colabEmail);
 
         var userID;
         var userIdColab;
@@ -165,24 +165,24 @@ module.exports = function (app) {
                 res.status(500).send({ success: false, error: err });
             }
             else {
-                console.log("Obtained userId from user email");
-                console.log("result:", result);
+                //console.log("Obtained userId from user email");
+                //console.log("result:", result);
                 userID = result[0].idUser;
                 userIdColab = result[1].idUser;
-                console.log("userId:", userID);
+                //console.log("userId:", userID);
                 var collaborator = {
                     noteID: noteID,
                     userID: userID,
                     userIdColab: userIdColab
                 };
-                console.log("collaborator: ", collaborator);
+                //console.log("collaborator: ", collaborator);
                 connection.query("INSERT INTO collaborators SET ?", [collaborator], function (err, result) {
-                    console.log("goes in here");
+                    //console.log("goes in here");
                     if (err) {
                         res.status(500).send({ success: false, error: err });
                     }
                     else {
-                        console.log("created row in the collaborator table");
+                        //console.log("created row in the collaborator table");
                         res.status(200).send({ success: true });
                     }
                 });

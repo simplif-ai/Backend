@@ -4,6 +4,8 @@
 
 module.exports = function (app) {
 
+    const request = require('request');
+
     //this is a mock api to test the fuctionality of the
     //middleware function
     app.get('/mocktext', function (req, res) {
@@ -20,7 +22,7 @@ module.exports = function (app) {
         }
         // res.send(options.body);
         request.post(options, function (error, response, body) {
-            //console.log(body);
+            ////console.log(body);
             res.send(JSON.parse(body));
         });
     });
@@ -30,12 +32,16 @@ module.exports = function (app) {
     //is sent back to the user
     app.post('/summarizertext', function (req, res) {
         //url subject to change once api is created
+        //console.log("body:", req.body);
+        //var body = req.body;
         try {
-            const body = JSON.parse(req.body);
+            var body = JSON.parse(req.body);
+            //console.log("body:", body);
         } catch (error) {
             res.status(500).send({ success: false, error: err });
         }
         var summarizerApi = "https://ir.thirty2k.com/summarize";
+        //console.log("body2:", body);
         var options = {
             headers: {
                 'Accept': 'application/json',
@@ -44,17 +50,18 @@ module.exports = function (app) {
             body: JSON.stringify(body),
             method: 'POST'
         }
-
+        //console.log("options: ", options);
         //send the text received from user to api of summarizer
         //get for testing reasons, use post when using summarizer api url
         request.post(summarizerApi, options, function (error, response, body) {
+            //console.log("goes in here");
             //recives data from summarizerAPI
             //sends it back to the summarizertext endpoint which would be the
             //body response to any request that posts a request to it
             //uses json to send a stringfied json object of the non-object data from api
-            console.log('statusCode', response.statusCode);
+            //console.log('statusCode', response.statusCode);
             if (!error && response.statusCode === 200) {
-                res.send(response.body);
+                res.status(200).send(response.body);
             } else {
                 res.send({ success: false, error: error });
             }

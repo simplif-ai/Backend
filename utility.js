@@ -4,7 +4,7 @@
 */
 
 const mysql = require('mysql');
-const nodemailer = require('nodemailer');
+//const nodemailer = require('nodemailer');
 const multer = require('multer');
 
 //setup upload 
