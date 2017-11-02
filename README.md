@@ -37,6 +37,9 @@ npm run lint
 
 ## Endpoints
 
+###
+
+
 ### /login
 Receives:
 
@@ -113,17 +116,53 @@ Sends:
 
 ### /loginToGoogle
 
+Receives:
+{
+    googleCode: "4/eyJhbGciOiJIUzI1NiIsInRVCJ9" //optional
+}
+
 Sends:
 
 {
 
-  sucess: "true"
+  googleToken:  String //optional
 
-  error: "Authentication failed" //optional
+  error: error //optional
 
-  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+  authorizeURL: String //optional
 
 }
+
+### /exportToDrive
+
+Receives:
+{text, googleToken}
+
+Sends:
+{success}
+
+### /addCollaborator
+Receives:
+{googleToken, fileID, collaboratorEmail}
+
+Sends:
+{success, error}
+
+#### /getGoogleProfilePicture
+
+Receives:
+{googleToken, email}
+
+Sends:
+{error?, profilePictureURL}
+
+### /createFolder
+
+Receives:
+{name, googleToken}
+
+Sends:
+{success, error?}
 
 ### /createAccount
 

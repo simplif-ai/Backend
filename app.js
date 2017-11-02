@@ -1,5 +1,5 @@
 /**
- * midlle ware to connect frontend with api for summarizer
+ * middle ware to connect frontend with api for summarizer
  * creates all dependencies and endpoints
  * Author: Lena Arafa
  * Date: 9/24/2017
@@ -15,6 +15,7 @@ const app = express();
 const parseurl = require('parseurl');
 const bodyparser = require('body-parser');
 const path = require('path');
+const googledrive = require('./src/Google/quickstart.js')
 //const expressValidator = require('express-validator');
 const request = require('request');
 const mysql = require('mysql');
@@ -22,7 +23,6 @@ const nodemailer = require ('nodemailer');
 
 var jwt = require('jsonwebtoken');
 app.set('superSecret', config.secret); // secret variable
-
 
 //setup database
 var connection = mysql.createConnection({
@@ -212,73 +212,186 @@ app.post('/deletesummary', function(req, res){
 });
 
 /**
-*** These are the Google Authentication methods which we use in ordre to authenticate a user with if they don't have an account.
-**/
-//Google authentication setup
-var GoogleAuth; // Google Auth object.
-function initClient() {
-  gapi.client.init({
-      'apiKey': 'ON6JuWU0xirbexXJ3H2a7wYq',
-      'clientId': '950783336607-ouratd1dt1hr3baond6u36664ijrmjnq.apps.googleusercontent.com',
-      'scope': 'https://www.googleapis.com/auth/drive.metadata.readonly',
-      'discoveryDocs': ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-  }).then(function () {
-      GoogleAuth = gapi.auth2.getAuthInstance();
-
-      // Listen for sign-in state changes.
-      GoogleAuth.isSignedIn.listen(updateSigninStatus);
-
-      // Handle initial sign-in state. (Determine if user is already signed in.)
-      var user = GoogleAuth.currentUser.get();
-      setSigninStatus();
-
-    });
-};
-
-function setSigninStatus(isSignedIn) {
-    var user = GoogleAuth.currentUser.get();
-    var isAuthorized = user.hasGrantedScopes(SCOPE);
-    if (isAuthorized) {
-      //set something about being authorized
-    } else {
-      //let the user know they're not authorized
-    }
-};
-
-//login endpoint
-//allows the user to login with google authentication
+* @param: req = {googleCode}
+* @return: res = {authorizeURL, success, googleToken}
+*/
+//allows the user to login to Google API
 app.post('/loginToGoogle', function(req, res) {
-  if (GoogleAuth.isSignedIn.get()) {
-    //user is already signed in!
+  try {
+    var body = JSON.parse(req.body);
+  } catch (error) {
+    res.status(500).send({success: false, error: err});
+  }
+
+  try {
+    var googleCode = body.googleCode;
+  } catch (error) {
+    console.log('in error');
+    res.status(500).send({success: false, error: err});
+  }
+
+  //if I was given a googleCode, try to create a token out of it
+
+  googledrive.authenticateUser(googleCode, function(success, authorizeURL, googleToken) {
+    if (success) {
+        res.status(200).send({success:true, googleToken: googleToken});
     } else {
-      // User is not signed in. Start Google auth flow.
-      GoogleAuth.signIn();
+      //return the authorizeURL
+        res.status(500).send({success:false, authorizeURL: authorizeURL});
     }
-
-    var token = jwt.sign(payload, "secretString", {
-                expiresIn: 60 * 60 * 24 // expires in 24 hours
   });
-
-  res.status(200).send({ success: true, token: token});
-
-    //return JWT token
+  
 });
 
+/**
+* Exports the summary to the user's google drive
+* @param: req = {text, googleToken}
+* @return: res = {success}
+*/
+app.post('/exportToDrive', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+    var title = body.title;
+    var text = body.text;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+//(title, text, auth)
+  googledrive.upload(title, text, googleToken, function(error, success) {
+    if (error || !success) {
+      res.status(500).send({success: false, error: error});
+    } else {
+      res.status(200).send({success: true});
+    }
+  });
+});
+
+/**
+* Adds the collaborator to the fileID
+* @param: req = {googleToken, fileID, collaboratorEmail}
+* @return: res = {success, error}
+*/
+//function addCollaborator(token, fileId, collaboratorEmail, callback) {
+app.post('/addCollaborator', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+    var fileID = body.fileID;
+    var collaboratorEmail = body.collaboratorEmail;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  //TODO: store the collaborator's email in our database
+  googledrive.addCollaborator(googleToken, fileID, collaboratorEmail, function(error) {
+    if (error != null) {
+      res.status(200).send({success: true});
+    } else {
+      res.status(500).send({success: false, error: error});
+    }
+  });
+});
+
+
+/**
+* Gets the Google profile picture thumbnail
+* @param: req = {googleToken, email}
+* @return: res = {error?, profilePictureURL}
+*/
+app.post('/getGoogleProfilePicture', function (req, res) {
+   try {
+    var body = JSON.parse(req.body);
+    var email = body.email;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  googledrive.getProfilePicture(googleToken, email, function(err, url) {
+    console.log(url);
+      if (err != null) {
+        res.status(500).send({error: err});
+      } else {
+        res.status(200).send({error: null, profilePictureURL: url});
+      }
+  });
+});
+
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {darkMode, userID}
+* @return: res = {success, error?}
+*/
+app.post('/setDarkMode', function (req, res) {
+  try {
+    var body = JSON.parse(req.body);
+    var darkMode = body.darkMode;
+    var userID = body.userID;
+  } catch(error) {
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+  connection.query("UPDATE users SET darkMode = ? WHERE userId = ?", [darkMode, userId], function (err, result) {
+    if (err) {
+      res.status(500).send({success: false, error: error});
+    } else {
+       res.status(200).send({error: null, success: true});
+    }
+  });
+});
+
+/**
+* Creates a folder inside the base Simplif.ai folder
+* @param: req = {name, googleToken}
+* @return: res = {success, error?}
+*/
+app.post('/createFolder', function (req, res) {
+ try {
+    var body = JSON.parse(req.body);
+    var name = body.name;
+    var googleToken = body.googleToken;
+  } catch(error) {
+      console.log(error);
+      res.status(500).send({success: false, error: error});
+      return;
+  }
+
+//(name, token, callback) 
+  googledrive.createFolder(name, googleToken, function(err, success) {
+    if (err) {
+      res.status(500).send({success: false, error: err});
+    } else {
+      res.status(200).send({success: true});
+    }
+  });
+});
+
+/**
+* Logs a user in
+* @param: req = {email, password}
+* @return: res = {success, error?, user}
+* user is the user object with all of its fields as stored in the database 
+*/
 app.post('/login', function(req, res) {
   //login without google API
   //email and password given
   try {
     var user = JSON.parse(req.body);
   } catch (error) {
-    res.status(500).send({ success: false, error: err });
+    res.status(500).send({success: false, error: error});
+    return;
   }
 
   var email = user.email;
   var password = user.password;
   var hashedPassword = hash(password);
 
-  //scrypt.kdf(password, )
-  //check hashed password against database:
   connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
     if (err) {
       res.status(500).send({ success: false, error: err });
@@ -293,11 +406,22 @@ app.post('/login', function(req, res) {
       });
 
       if (result.length == 1) {
-        //do JWT stuff
-        res.status(200).send({ success: true, token: token});
+        res.status(200).send({success: true, token, user: result[0]});
       } else {
-        res.status(500).send({ success: false, error: "Username or password is incorrect."});
+        res.status(500).send({success: false, error: "Username or password is incorrect."});
+
       }
+
+/*
+      googledrive.authenticateUser(function(success, authorizeURL, googleToken) {
+        if (result.length == 1) {
+          res.status(200).send({success: true, token: token, googleToken: googleToken});
+        } else {
+          res.status(500).send({success: false, error: "Username or password is incorrect.", googleToken: googleToken});
+        }
+
+      });
+      */
     }
   });
 });
@@ -568,7 +692,6 @@ app.post('/editProfile', function(req, res) {
   }
 
   res.status(200).send({success: true})
-
 
 });
 
