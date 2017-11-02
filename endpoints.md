@@ -34,10 +34,11 @@ postCount: "3"
 
 Receives:
 {
-email: "sdblatz@gmail.com"
-name: "Sawyer"
-email: "sdblatz@gmail.com"
-password: "securePass"
+email: "sdblatz@gmail.com",
+name: "Sawyer",
+email: "sdblatz@gmail.com",
+password: "securePass",
+phoneNumber: "2008657700",
 prefersEmailUpdates: "0"
 }
 
@@ -77,3 +78,26 @@ error: "Email doesn't exist." //optional
 
 
 ### /addpicture
+
+### /savesummary
+Receives:
+
+{
+
+    "email": "luna.ad2@gmail.com",
+
+    "text": "This is the summary text saved by the user",
+
+    "name": "CS 307 Notes"
+
+}
+
+Send:
+
+{
+
+    success: "true",
+
+    error: "error saving to db"
+
+}

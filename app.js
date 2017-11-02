@@ -19,7 +19,7 @@ const path = require('path');
 //const expressValidator = require('express-validator');
 const request = require('request');
 const mysql = require('mysql');
-const nodemailer = require('nodemailer');
+const nodemailer = require ('nodemailer');
 const multer = require('multer');
 
 var jwt = require('jsonwebtoken');
