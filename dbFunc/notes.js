@@ -22,13 +22,13 @@ module.exports = function (app) {
         }
         */
         //console.log('Connected to database.');
-        ////console.log("body: ", req.body);
+        //console.log("body: ", req.body);
         try {
             var body = JSON.parse(req.body);
         } catch (error) {
             res.status(500).send({ success: false, error: error });
         }
-        ////console.log("gets here");
+        //console.log("gets here");
         var userEmail = body.email;
         var text = body.text;
         var name = text.substring(0, 15);
@@ -57,7 +57,7 @@ module.exports = function (app) {
                 };
                 //console.log("note: ", note);
                 connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-                    ////console.log("goes in here");
+                    //console.log("goes in here");
                     if (err) {
                         res.status(500).send({ success: false, error: err });
                     }
@@ -157,4 +157,55 @@ module.exports = function (app) {
 
     });
 
+    /**
+ * obtain list of notes for the users
+ * @req: {"email": ""}
+ * @res: [{"noteID": "", "name":""}]
+ */
+app.post("/listnotes", function(req, res){
+    try {
+      var body = JSON.parse(req.body);
+    } catch (error) {
+      res.status(500).send({ success: false, error: err });
+    }
+    var userEmail = body.email;
+    //get users from email
+    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+     //console.log("gets here1");
+     //console.log("result:", result);
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      }
+      else {
+       //console.log("Obtained userId from user email");
+        var id = result[0].idUser;
+       //console.log("id:", id);
+        //get the all the notes of the giver userID
+        connection.query("SELECT * FROM notes WHERE userID = ?",[id], function(err, result) {
+          //console.log("here");
+          if (err) {
+            res.status(500).send({ success: false, error: err });
+          }
+          else {
+            //add all notes and their name to an array 
+            var array = [];
+            for(var i = 0; i < result.length; i++){
+              var noteID = result[i].noteID;
+              var name = result[i].name;
+              var noteObject= {
+                noteID: noteID,
+                name: name
+              }
+              array.push(noteObject);
+            }
+            //send back an array of noteObject that contains noteID and name
+            res.send(array);
+          }
+        });
+      }
+    });
+  });
+
 }
+
+
