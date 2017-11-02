@@ -12,7 +12,9 @@ describe('Google Drive Create Folder', () => {
         "expiry_date": 1509574871937
     }
     googledrive.createFolder("Hello", token, function(err, file) {
-    	assert.equal('Simplif.ai', file.parents[0]);
+      if (file != null) {
+        assert.equal('Simplif.ai', file.parents[0]);
+      }
     });
   });
 
