@@ -120,3 +120,24 @@ Send:
 
 }
 
+## /listnotes
+
+Receives:
+
+ {
+     "email": "luna.ad2@gmail.com"
+ }
+ 
+ Send:
+
+ [
+     {
+        "noteID": 12,
+        "name": "1234"
+    },
+    {
+        "noteID": 13,
+        "name": "2wait Another t"
+    }
+ ]
+
