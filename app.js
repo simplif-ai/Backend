@@ -213,8 +213,8 @@ app.post('/createnote', function (req, res) {
 
 /**
  * Saves the notes added with user's summary on to the notes table 
- *@req: {'noteId':'', 'noteText':''}
- *@ret: {success: true} 
+ *@req: {'noteId':'', 'name: name', noteText':''}
+ *@ret: {'success: true'} 
  *       err
  **/
 app.post('/updatenote', function (req, res) {
@@ -224,10 +224,17 @@ app.post('/updatenote', function (req, res) {
     res.status(500).send({ success: false, error: err });
   }
   var noteID = body.noteID;
+  var name = body.name;
   var noteText = body.noteText;
 
-  //update the note table with adding the notesText to one of the noteIds
-  connection.query("UPDATE notes SET noteText = ? WHERE noteID =?", [noteText, noteID], function (err, result) {
+  console.log("name:", name);
+  console.log("noteText:", noteText);
+
+  //name is null
+  if(name == null) {
+    console.log("goes in here1");
+    //update the note table with adding the notesText to one of the noteIds
+    connection.query("UPDATE notes SET noteText = ? WHERE noteID =?", [noteText, noteID], function (err, result) {
     console.log("goes in here");
     if (err) {
       res.status(500).send({ success: false, error: err });
@@ -236,7 +243,39 @@ app.post('/updatenote', function (req, res) {
       console.log("Success!");
       res.status(200).send({ success: true });
     }
-  });
+    });
+  }
+  //noteTest is null
+  else if (noteText == null) {
+    console.log("goes in here2");
+     //update the note table with name to one of the noteIds
+     connection.query("UPDATE notes SET name = ? WHERE noteID =?", [name, noteID], function (err, result) {
+      console.log("goes in here");
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      }
+      else {
+        console.log("Success!");
+        res.status(200).send({ success: true });
+      }
+      });
+  }
+  else {
+    console.log("goes in here3");
+    //update the note table with name and the noteText to one of the noteIds
+    connection.query("UPDATE notes SET name = ?, noteText = ? WHERE noteID =?", [name, noteText, noteID], function (err, result) {
+      console.log("goes in here");
+      if (err) {
+        res.status(500).send({ success: false, error: err });
+      }
+      else {
+        console.log("Success!");
+        res.status(200).send({ success: true });
+      }
+      });
+  }
+
+  
 });
 
 /**Add collaborators to users
