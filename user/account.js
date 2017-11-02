@@ -113,60 +113,46 @@ module.exports = function (app) {
         });
     });
 
-    //login endpoint
-    //allows the user to login with google authentication
-    app.post('/loginToGoogle', function (req, res) {
-        if (GoogleAuth.isSignedIn.get()) {
-            //user is already signed in!
+    /**
+    * Logs a user in
+    * @param: req = {email, password}
+    * @return: res = {success, error?, user}
+    * user is the user object with all of its fields as stored in the database 
+    */
+    app.post('/login', function(req, res) {
+      //login without google API
+      //email and password given
+      try {
+        var user = JSON.parse(req.body);
+      } catch (error) {
+        res.status(500).send({success: false, error: error});
+        return;
+      }
+
+      var email = user.email;
+      var password = user.password;
+      var hashedPassword = hash(password);
+
+      connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
+        if (err) {
+          res.status(500).send({ success: false, error: err });
         } else {
-            // User is not signed in. Start Google auth flow.
-            GoogleAuth.signIn();
-        }
+          console.log(result);
+          const payload = {
+            admin: email
+          };
 
-        var token = jwt.sign(payload, "secretString", {
+          var token = jwt.sign(payload, app.get('superSecret'), {
             expiresIn: 60 * 60 * 24 // expires in 24 hours
-        });
+          });
 
-        res.status(200).send({ success: true, token: token });
+          if (result.length == 1) {
+            res.status(200).send({success: true, token, user: result[0]});
+          } else {
+            res.status(500).send({success: false, error: "Username or password is incorrect."});
 
-        //return JWT token
-    });
-
-    app.post('/login', function (req, res) {
-        //login without google API
-        //email and password given
-        try {
-            var user = JSON.parse(req.body);
-        } catch (error) {
-            res.status(500).send({ success: false, error: err });
+          }
         }
-
-        var email = user.email;
-        var password = user.password;
-        var hashedPassword = hash(password);
-
-        //scrypt.kdf(password, )
-        //check hashed password against database:
-        connection.query("SELECT * FROM users WHERE email = ? AND password = ?", [email, hashedPassword], function (err, result) {
-            if (err) {
-                res.status(500).send({ success: false, error: err });
-            } else {
-                console.log(result);
-                const payload = {
-                    admin: email
-                };
-
-                var token = jwt.sign(payload, app.get('superSecret'), {
-                    expiresIn: 60 * 60 * 24 // expires in 24 hours
-                });
-
-                if (result.length == 1) {
-                    //do JWT stuff
-                    res.status(200).send({ success: true, token: token });
-                } else {
-                    res.status(500).send({ success: false, error: "Username or password is incorrect." });
-                }
-            }
-        });
+      });
     });
 }
