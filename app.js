@@ -10,6 +10,7 @@
 //const saltRounds = 10;
 
 var config = require('./config');
+require('dotenv').config()
 const express = require('express');
 const app = express();
 const parseurl = require('parseurl');
@@ -19,6 +20,7 @@ const path = require('path');
 const request = require('request');
 const mysql = require('mysql');
 const nodemailer = require ('nodemailer');
+const multer = require('multer');
 
 var jwt = require('jsonwebtoken');
 app.set('superSecret', config.secret); // secret variable
@@ -32,6 +34,18 @@ var connection = mysql.createConnection({
     port: process.env.RDS_PORT,
     database : process.env.RDS_DB_NAME
 });
+
+
+//setup upload 
+var storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '.jpg') //Appending .jpg
+  }
+})
+const upload = multer({storage: storage});
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -86,7 +100,11 @@ app.post('/slack/events', function (req, res) {
 //is sent back to the user
 app.post('/summarizertext', function (req, res) {
     //url subject to change once api is created
-    const body = JSON.parse(req.body);
+    try {
+      const body = JSON.parse(req.body);
+    } catch (error) {
+      res.status(500).send({ success: false, error: err });
+    }
     var summarizerApi = "https://ir.thirty2k.com/summarize";
     var options = {
         headers: {
@@ -127,14 +145,23 @@ app.post('/savesummary', function (req, res) {
     */
     console.log('Connected to database.');
     console.log("body: ", req.body);
+  try {
     var body = JSON.parse(req.body);
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+    console.log("gets here");
     var userEmail = body.email;
     var text = body.text;
     var name = text.substring(0, 15);
     var datetime = new Date();
+    console.log("email: ", body.email);
+    console.log("text: ", body.text);
 
     //get full text, summary,
     connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result) {
+      console.log("gets here1");
+      console.log("result:", result);
       if (err) {
 			  res.status(500).send({ success: false, error: err });
 		  }
@@ -180,35 +207,108 @@ app.post('/savesummary', function (req, res) {
 });
 
 /**
- * Delete summary from notes and summary table
- * The frontend will have the noteID when the view for summaries list endpoint and logic
- * is implemented, then from the view of summaries the user could delete a summary
+ * Saves the notes added with user's summary on to the notes table 
+ *@req: {'noteId':'', 'noteText':''}
+ *@ret: {success: true} 
+ *       err
+ **/
+app.post('/savenotes', function(req, res){
+  try {
+    var body = JSON.parse(req.body);
+  } catch (error) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var noteID = body.noteID;
+  var noteText = body.noteText;
+  
+  //update the note table with adding the notesText to one of the noteIds
+  connection.query("UPDATE notes SET noteText = ? WHERE noteID =?", [noteText, noteID], function (err, result) {
+			console.log("goes in here");
+  		if (err) {
+  			res.status(500).send({ success: false, error: err });
+  		}
+  		else {
+        console.log("Success!");
+        res.status(200).send({ success: true});
+      }
+  });
+});
+
+/**
+ * Upload profile picture using multer
+ * File input field name is simply 'file'
+ * get the uploaded photo and saves it on the server
+ * Add the filepath on to db 
  */
-app.post('/deletesummary', function(req, res){
-	var email = req.email;
-	var noteID = req.noteID;
+app.post('/addpicture', upload.single('file'), function(req, res, err){
+  //console.log("req:", req);
+  console.log("reqfile:", req.file);
+  console.log("filname: ",req.file.filename);
+  console.log("originalname: ",req.file.originalname);
+  console.log("path:", req.file.path);
+  console.log("type:", req.file.mimetype);
+  console.log("email:", req.body);
+  try {
+    var body = JSON.parse(req.body);
+  } catch (err) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var userEmail = body.email;
+  console.log("email:", email);
+  if(err) {
+    console.log("here1");
+    res.status(500).send({ success: false, error: err });
+  }
+  else {
+    console.log("here2");
+    //store path in sql
+    connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [picturePath, email], function(err, result) {
+      console.log("inside insert");
+      if (err) {
+        res.status(500).send({success: false, error: err});
+      } else {
+        res.status(200).send({success: true});
+      }
+    });
+  }
 
-	//delete all the summaries with the given noteID
-	connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function(err, result) {
-		if (err) {
-			console.log("Couldn't delete summary");
-			res.status(500).send({ success: false, error: err });
-		}
-		else {
-			res.status(200).send({success: true});
-		}
-	});
-	//delete the actual note with the given noteID
-	connection.query("DELETE FROM notes WHERE noteID = ?", [noteID], function(err, result) {
-		if (err) {
-			console.log("Couldn't delete note");
-			res.status(500).send({ success: false, error: err });
-		}
-		else {
-			res.status(200).send({success: true});
-		}
-	});
+})
 
+/**
+ * Gets the path of the user's picture stored in the db
+ * @req:{'email': ''}
+ * @res:{success: true} 
+ *       err
+ **/
+app.post('/getpicture', function(req, res, err){
+  try {
+    var body = JSON.parse(req.body);
+  } catch (err) {
+    res.status(500).send({ success: false, error: err });
+  }
+  var userEmail = body.email;
+  if(err) {
+    res.status(500).send({ success: false, error: err });
+  }
+  else {
+    //query db for picturepath
+    connection.query("SELECT * FROM users WHERE email = ?",[userEmail], function(err, result) {
+      console.log("gets here1");
+      console.log("result:", result);
+      if (err) {
+			  res.status(500).send({ success: false, error: err });
+		  }
+      else {
+        console.log("Obtained userId from user email");
+        var picturePath = result[0].picturePath;
+        try {
+          res.sendFile(picturePath);
+        }catch(err) {
+          res.status(500).send({ success: false, error: err });
+        }
+      }
+    });
+  }
 });
 
 /**

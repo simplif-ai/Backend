@@ -242,6 +242,25 @@ Send:
 
 }
 
+## /savenotes
+Receives:
+
+{
+    "noteId": 13,
+    "noteText": "Hi this is a note text"
+
+}
+
+Send:
+
+{
+
+    success: "true",
+
+    error: "error saving to db"
+
+}
+
 This is a post request to save the text summary of the user to the db. A row is created in the notes table which has the name of name of the text, date, noteText(for any additional notes from user), and userId(the account of the user that saved the summary, obtained from email in the json object request). A row is created in to summary table which has the summaryText(the user saved, in the json object request), the noteId(from the notes table), and the brevity.
 
 ## How to use summarizer Api
