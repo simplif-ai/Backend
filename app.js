@@ -348,15 +348,6 @@ app.post('/setDarkMode', function (req, res) {
 
 /**
 * Creates a folder inside the base Simplif.ai folder
-* @param: req = {userID}
-* @return: res = {darkMode, error?}
-*/
-app.post('/getDarkMode', function (req, res) {
-
-});
-
-/**
-* Creates a folder inside the base Simplif.ai folder
 * @param: req = {name, googleToken}
 * @return: res = {success, error?}
 */
