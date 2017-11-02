@@ -38,16 +38,18 @@ app.use(function (req, res, next) {
   next();
 });
 
+
+
+app.get('/', function (req, res) {
+  res.sendFile(path.join(__dirname, '/index.html'));
+});
+
 //seperate endpoints
 require('./dbFunc/notes')(app);
 require('./mainFunc/summarizerApi')(app);
 require('./user/account')(app);
 require('./user/password')(app);
 require('./user/profile')(app);
-
-app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname, '/index.html'));
-});
 
 //Slackbot endpoint
 app.post('/slack/events', function (req, res) {
@@ -56,6 +58,7 @@ app.post('/slack/events', function (req, res) {
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
+  console.log()
   var err = new Error('Not Found');
   err.status = 404;
   next(err);
