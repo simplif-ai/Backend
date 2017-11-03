@@ -140,3 +140,33 @@ Receives:
     }
  ]
 
+## /createnotes
+Receives:
+
+ {
+     "email": "luna.ad2@gmail.com", 
+     "text": "hi this is a testing note "
+ }
+
+Send:
+{
+
+ "noteID": "43"
+
+}
+
+## /updatenotes
+
+Receives:
+
+{
+    "noteId": "43", 
+    "name:" "?", 
+    "noteText": '?'
+}
+
+Send:
+
+{
+    "success": "true"
+} 
