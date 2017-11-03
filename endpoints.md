@@ -101,7 +101,7 @@ Send:
 
 
 ## /savenotes
-Receives:
+#Receives:
 
 {
     "noteId": 13,
@@ -116,6 +116,24 @@ Send:
     success: "true",
 
     error: "error saving to db"
+
+}
+
+##/addpicture
+
+Receives:
+{
+    file: image ->(multipart/form-data)
+    email: "luna.ad2@gmail.com"
+}
+
+Send:
+
+{
+
+    success: "true",
+
+    error: "success: false"
 
 }
 
