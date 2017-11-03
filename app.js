@@ -48,7 +48,8 @@ require('./mainFunc/summarizerApi')(app);
 require('./user/account')(app);
 require('./user/password')(app);
 require('./user/profile')(app);
-
+//require('./user/google')(app);
+require('./dbFunc/darkMode')(app);
 
 //Slackbot endpoint
 app.post('/slack/events', function (req, res) {
