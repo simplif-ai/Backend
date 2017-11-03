@@ -100,7 +100,7 @@ Send:
 }
 
 
-##/addpicture
+## /addpicture
 
 Receives:
 {
