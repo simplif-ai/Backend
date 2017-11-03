@@ -21,7 +21,7 @@ const path = require('path');
 // const mysql = require('mysql');
 // const nodemailer = require('nodemailer');
 //const multer = require('multer');
-var jwt = require('jsonwebtoken');
+//var jwt = require('jsonwebtoken');
 
 app.set('superSecret', config.secret); // secret variable
 // view engine setup
@@ -37,8 +37,6 @@ app.use(function (req, res, next) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
-
-
 
 app.get('/', function (req, res) {
   res.sendFile(path.join(__dirname, '/index.html'));
