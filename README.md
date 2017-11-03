@@ -111,19 +111,49 @@ Sends:
 
 }
 
+### /setDarkMode
+
+Receives:{darkMode, userID}
+Sends: {success, error?}
+
 ### /loginToGoogle
 
+If no googleCode, returns an authorizeURL. If googleCode, returns a googleToken
+
+Receives:{googleCode?}
+Sends: {authorizeURL?, success, googleToken?}
+
+### /exportToDrive
+
+Receives:
+{text, googleToken}
+
 Sends:
+{success}
 
-{
+### /addCollaborator
+Receives:
+{googleToken, fileID, collaboratorEmail}
 
-  sucess: "true"
+Sends:
+{success, error}
 
-  error: "Authentication failed" //optional
+#### /getGoogleProfilePicture
 
-  token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+Receives:
+{googleToken, email}
 
-}
+Sends:
+{error?, profilePictureURL}
+
+### /createFolder
+
+Receives:
+{name, googleToken}
+
+Sends:
+{success, error?}
+
 
 ### /createAccount
 
