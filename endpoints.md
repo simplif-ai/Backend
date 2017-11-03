@@ -140,7 +140,7 @@ Receives:
     }
  ]
 
-## /createnotes
+## /createnote
 Receives:
 
  {
