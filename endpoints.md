@@ -155,7 +155,7 @@ Send:
 
 }
 
-## /updatenotes
+## /updatenote
 
 Receives:
 
