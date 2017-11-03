@@ -126,7 +126,7 @@ Sends: {authorizeURL?, success, googleToken?}
 ### /exportToDrive
 
 Receives:
-{text, googleToken}
+{title, text, googleToken}
 
 Sends:
 {success}

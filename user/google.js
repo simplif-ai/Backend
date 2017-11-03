@@ -42,7 +42,7 @@ module.exports = function (app) {
 
     /**
     * Exports the summary to the user's google drive
-    * @param: req = {text, googleToken}
+    * @param: req = {title, text, googleToken}
     * @return: res = {success}
     */
     app.post('/exportToDrive', function (req, res) {
