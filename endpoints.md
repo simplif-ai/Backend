@@ -100,25 +100,6 @@ Send:
 }
 
 
-## /savenotes
-#Receives:
-
-{
-    "noteId": 13,
-    "noteText": "Hi this is a note text"
-
-}
-
-Send:
-
-{
-
-    success: "true",
-
-    error: "error saving to db"
-
-}
-
 ##/addpicture
 
 Receives:
