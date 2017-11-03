@@ -21,9 +21,9 @@ module.exports = function (app) {
           return;
       }
 
-      connection.query("UPDATE users SET darkMode = ? WHERE userId = ?", [darkMode, userId], function (err, result) {
+      connection.query("UPDATE users SET darkMode = ? WHERE idUser = ?", [darkMode, userID], function (err, result) {
         if (err) {
-          res.status(500).send({success: false, error: error});
+          res.status(500).send({success: false, error: err});
         } else {
            res.status(200).send({error: null, success: true});
         }

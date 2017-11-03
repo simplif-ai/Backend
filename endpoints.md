@@ -158,7 +158,7 @@ Receives:
     }
  ]
 
-## /createnotes
+## /createnote
 Receives:
 
  {
@@ -173,7 +173,7 @@ Send:
 
 }
 
-## /updatenotes
+## /updatenote
 
 Receives:
 
