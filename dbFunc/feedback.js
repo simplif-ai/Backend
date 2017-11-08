@@ -3,8 +3,9 @@
  */
 module.exports = function (app) {
 
-    var utility = require('./../utility');
-    var connection = utility.connection;
+    const utility = require('./../utility');
+    const connection = utility.connection;
+    const mailer = require('nodemailer');
 
     /**
     * Saves the user's feedback to the database and sends an email to the developers
@@ -21,6 +22,8 @@ module.exports = function (app) {
           return;
       }
 
+      emailDevelopers(feedback);
+
       connection.query("UPDATE users SET feedback = ? WHERE idUser = ?", [feedback, userID], function (err, result) {
         if (err) {
           res.status(500).send({success: false, error: err});
@@ -30,5 +33,30 @@ module.exports = function (app) {
       });
     });
 
-    
+    function emailDevelopers(feedback) {
+      var transporter = mailer.createTransport({
+            service: 'GMAIL',
+            auth: {
+                user: 'simplif.ai17@gmail.com',
+                pass: 'simplif.ai2017'
+            }
+        });
+        //console.log(transporter);
+        var mailOptions = {
+            to: 'simplif.ai17@gmail.com',
+            subject: 'Feedback about Simplif.ai',
+            text: feedback
+        }
+        //console.log(mailOptions.html);
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                //console.log('Email sent: ' + req.param.url);
+                console.log('Email sent!');
+            }
+            mailer.getTestMessageUrl(info);
+            transporter.close();
+        });
+    }
 }
