@@ -155,6 +155,7 @@ function createFolder(name, token, callback) {
         var drive = google.drive('v2');
 
         getOauth(token, function (auth) {
+
           var fileMetadata = {
             'title': name,
             parents: [{id: folder}],
@@ -170,7 +171,6 @@ function createFolder(name, token, callback) {
               // Handle error
               callback(err, null);
             } else {
-              console.log(file.id);
               callback(null, file);
             }
           });
