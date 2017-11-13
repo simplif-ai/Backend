@@ -37,6 +37,10 @@ npm run lint
 
 ## Endpoints
 
+### /feedback
+Receives: {userID, feedback}
+Sends: {success, error?}
+
 ### /login
 Receives:
 
