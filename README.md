@@ -133,7 +133,7 @@ Receives:
 {title, text, googleToken}
 
 Sends:
-{success}
+{fileID, error?}
 
 ### /addCollaborator
 Receives:
@@ -156,7 +156,7 @@ Receives:
 {name, googleToken}
 
 Sends:
-{success, error?}
+{fileID, error?}
 
 
 ### /createAccount

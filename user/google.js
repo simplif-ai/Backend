@@ -57,11 +57,11 @@ module.exports = function (app) {
       }
 
     //(title, text, auth)
-      googledrive.upload(title, text, googleToken, function(error, success) {
-        if (error || !success) {
-          res.status(500).send({success: false, error: error});
+      googledrive.upload(title, text, googleToken, function(error, file) {
+        if (error) {
+          res.status(500).send({fileID: file, error: error});
         } else {
-          res.status(200).send({success: true});
+          res.status(200).send({fileID: file.id});
         }
       });
     });
@@ -135,11 +135,11 @@ module.exports = function (app) {
       }
 
     //(name, token, callback) 
-      googledrive.createFolder(name, googleToken, function(err, success) {
+      googledrive.createFolder(name, googleToken, function(err, fileID) {
         if (err) {
-          res.status(500).send({success: false, error: err});
+          res.status(500).send({fileID: fileID, error: err});
         } else {
-          res.status(200).send({success: true});
+          res.status(200).send({fileID: fileID});
         }
       });
     });

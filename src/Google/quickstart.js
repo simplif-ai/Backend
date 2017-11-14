@@ -325,10 +325,10 @@ function upload(title, text, token, callback) {
         fields: 'id'
       }, function (err, file) {
         if (err) {
-          callback(err, false);
+          callback(err, null);
           // Handle error
         } else {
-          callback(null, true)
+          callback(null, file)
         }
       });
   }); 
