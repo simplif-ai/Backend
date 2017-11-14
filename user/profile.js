@@ -133,6 +133,44 @@ module.exports = function (app) {
         }
     });
 
+    /**
+ * Gets the path of the user's picture stored in the db
+ * @req:{'email': ''}
+ * @res:{success: true} 
+ *       err
+ **/
+app.post('/getpicture', function (req, res) {
+    try {
+      var body = JSON.parse(req.body);
+    } catch (err) {
+      console.log("here1:", err);
+      res.status(500).send({ success: false, error: err });
+    }
+    console.log("body", body);
+    var userEmail = body.email;
+    console.log("email", userEmail);
+    //query db for picturepath
+    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+      console.log("gets here1");
+      console.log("result:", result);
+      if (err) {
+        console.log("here3:", err);
+        res.status(500).send({ success: false, error: err });
+      }
+      else {
+        console.log("Obtained userId from user email");
+        var picturePath = result[0].picturePath;
+        try {
+          res.sendFile(picturePath);
+        } catch (err) {
+          console.log("here4:", err);
+          res.status(500).send({ success: false, error: err });
+        }
+      }
+    });
+  });
+  
+
     /**Add collaborators to users
      * The user wants to add a collaborator so they select a note and enter the email address
      * of the collaborator that you want to share the note with
@@ -158,7 +196,7 @@ module.exports = function (app) {
 
         var userID;
         var userIdColab;
-
+                                                                
         //get the userID from userEmail
         connection.query("SELECT * FROM users WHERE email IN ('" + userEmail + "', '" + colabEmail + "')", function (err, result) {
             if (err) {
@@ -189,4 +227,15 @@ module.exports = function (app) {
             }
         });
     });
+}
+
+/**
+ * delete collaborators 
+ */
+app.post('/addcollaborators', function (req, res) {
+    try {
+        var body = JSON.parse(req.body);
+    } catch (error) {
+        res.status(500).send({ success: false, error: error });
+    }
 }

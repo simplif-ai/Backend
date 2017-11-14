@@ -16,6 +16,10 @@ const app = express();
 const parseurl = require('parseurl');
 const bodyparser = require('body-parser');
 const path = require('path');
+var aws = require('aws-sdk')
+var multerS3 = require('multer-s3')
+
+var s3 = new aws.S3({ /* ... */ })
 //const expressValidator = require('express-validator');
 //const request = require('request');
 // const mysql = require('mysql');

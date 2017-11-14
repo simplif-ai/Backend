@@ -168,4 +168,34 @@ Send:
 
 {
     "success": "true"
+    error: "success: false"
+} 
+
+## /getPicture 
+
+Receives: 
+
+{
+    'email': ''
+}
+
+Send:
+
+{
+    "success": "true"
+    error: "success: false"
+} 
+
+## /deleteCollaborators 
+Receives: 
+
+{
+   
+}
+
+Send:
+
+{
+    "success": "true"
+    error: "success: false"
 } 
