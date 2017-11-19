@@ -160,6 +160,7 @@ app.post('/getpicture', function (req, res) {
       else {
         console.log("Obtained userId from user email");
         var picturePath = result[0].picturePath;
+        console.log("result:", result[0]);
         try {
           res.sendFile(picturePath);
         } catch (err) {
@@ -227,15 +228,17 @@ app.post('/getpicture', function (req, res) {
             }
         });
     });
+
+    /**
+    * delete collaborators 
+    **/
+    app.post('/addcollaborators', function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+        }
+    });
+
 }
 
-/**
- * delete collaborators 
- */
-app.post('/addcollaborators', function (req, res) {
-    try {
-        var body = JSON.parse(req.body);
-    } catch (error) {
-        res.status(500).send({ success: false, error: error });
-    }
-}
