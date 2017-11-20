@@ -163,7 +163,12 @@ var event = {
 
 Sends:
 ```javascript
-{success, eventID, err?}
+{
+    success,
+    eventID,
+    err?
+
+}
 
 ```
 ### /exportToDrive
