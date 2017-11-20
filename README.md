@@ -162,12 +162,11 @@ var event = {
 ```
 
 Sends:
-```javascript
+```json
 {
     success,
     eventID,
-    err?
-
+    error?
 }
 
 ```
