@@ -70,7 +70,7 @@ Sends:
 {
   sucess: Boolean,
   token: String,
-  error?: String //optional
+  error?: String
 }
 ```
 
