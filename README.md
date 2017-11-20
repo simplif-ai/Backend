@@ -38,8 +38,22 @@ npm run lint
 ## Endpoints
 
 ### /feedback
-Receives: {userID, feedback}
-Sends: {success, error?}
+
+Receives:
+```javascript
+{
+    userID: Int,
+    feedback: String
+}
+```
+
+Sends:
+```javascript
+{
+    success: Boolean,
+    error?: String
+}
+```
 
 ### /login
 Receives:
@@ -128,10 +142,18 @@ Receives:{googleCode?}
 Sends: {authorizeURL?, success, googleToken?}
 
 ### /createGoogleEvent
+
 Receives:
 ```javascript
-{googleToken, event}
+{
+    googleToken: String,
+    event: Object
+}
+```
 
+```javascript
+
+//note: Not all paramers are necessary. Only need to send in summary, start, and end.
 var event = {
     'summary': 'Google I/O 2015',
     'location': '800 Howard St., San Francisco, CA 94103',
@@ -160,16 +182,15 @@ var event = {
         },
     };
 ```
-
 Sends:
 ```javascript
 {
-    success: boolean,
+    success: Boolean,
     eventID: String,
     error: String
 }
-
 ```
+
 ### /exportToDrive
 
 Receives:
