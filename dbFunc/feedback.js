@@ -22,12 +22,12 @@ module.exports = function (app) {
           return;
       }
 
-      emailDevelopers(feedback);
-
       connection.query("UPDATE users SET feedback = ? WHERE idUser = ?", [feedback, userID], function (err, result) {
-        if (err) {
+        if (err || result.affectedRows == 0) {
+
           res.status(500).send({success: false, error: err});
         } else {
+           emailDevelopers(feedback);
            res.status(200).send({error: null, success: true});
         }
       });
