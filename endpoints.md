@@ -245,6 +245,19 @@ Send:
      ]
  }
 
+ ### /deletenote
+* To delete a whole note with summary and note 
 
+Receives:
+{
+    "email": "", 
+    "noteID": "" 
+}
+
+Send:
+{
+    'success: true'
+    err
+} 
 
    

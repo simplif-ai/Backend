@@ -275,6 +275,49 @@ app.post("/listnotes", function(req, res){
     });
   });
 
+   /**
+   ** To delete a whole note with summary and note 
+   ** @req: {"email": "", "noteID": }
+   ** @res: {'success: true'} 
+   **       err
+   **/
+  app.post("/deletenote", function(req, res) {
+    try {
+        var body = JSON.parse(req.body);
+        var userEmail = body.email;
+        var noteID =  body.noteID;
+    } catch (error) {
+        res.status(500).send({ success: false, error: err });
+    }
+    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+        //console.log("gets here1");
+        //console.log("result:", result);
+         if (err) {
+           res.status(500).send({ success: false, error: err });
+         }
+         else {
+            var userID = result[0].idUser;
+            connection.query("DELETE FROM notes WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
+                if (err) {
+                    res.status(500).send({ success: false, error: err });
+                }
+                else {
+                    connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function (err, result) {
+                        if (err) {
+                            res.status(500).send({ success: false, error: err });
+                        }
+                        else {
+                            console.log("result", result[0]);
+                            res.status(200).send({ success: true });
+                        }
+                    });
+                }
+            });
+        }
+    });
+  });
+
+
 }
 
 
