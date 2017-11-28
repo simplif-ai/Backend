@@ -100,7 +100,7 @@ Send:
 }
 
 
-## /addpicture
+### /addpicture
 
 Receives:
 {
@@ -118,7 +118,7 @@ Send:
 
 }
 
-## /listnotes
+### /listnotes
 
 Receives:
 
@@ -139,7 +139,7 @@ Receives:
     }
  ]
 
-## /createnote
+### /createnote
 Receives:
 
  {
@@ -154,7 +154,7 @@ Send:
 
 }
 
-## /updatenote
+### /updatenote
 
 Receives:
 
@@ -169,9 +169,10 @@ Send:
 {
     "success": "true"
     error: "success: false"
+    'name': ''
 } 
 
-## /getPicture 
+### /getPicture 
 
 Receives: 
 
@@ -186,11 +187,20 @@ Send:
     error: "success: false"
 } 
 
-## /deleteCollaborators 
+### /addcollaborators 
+* Add collaborators to users
+* The user wants to add a collaborator so they select a note and enter the email address
+* of the collaborator that you want to share the note with
+* We recive the userEmail: the email of the current user, noteID: the note id of the current
+* user that they want to share with collaborator user, colabEmail: the email of the collaborator 
+* that will obtain editing abilities 
+
 Receives: 
 
 {
-   
+    'noteID': '',
+    'userEmail':'', 
+    'colabEmail':''
 }
 
 Send:
@@ -199,3 +209,42 @@ Send:
     "success": "true"
     error: "success: false"
 } 
+
+### /deleteCollaborators 
+* colabEmail: the email of the collaborator
+
+Receives: 
+
+{
+   'colabEmail':'',
+   'noteId': ''
+}
+
+Send:
+
+{
+     "success": "true"
+    error: "success: false"
+} 
+
+### /getsumandnote
+* Click on a note and view its summary and/or user notes(if exists)
+
+ Receives:
+ {
+     "email": ""
+ }
+
+ Send:
+ {
+     [
+         {
+             "summary" : "", 
+             "noteText" : ""
+         }
+     ]
+ }
+
+
+
+   

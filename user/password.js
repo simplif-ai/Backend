@@ -7,6 +7,7 @@ module.exports = function (app) {
     var connection = utility.connection;
     var hash = utility.hash
     var nodemailer = require('nodemailer');
+    var schedule = require('node-schedule');
     //this endpoint allows the user to change their password in the database.
     app.post('/changePassword', function (req, res) {
 
@@ -49,13 +50,21 @@ module.exports = function (app) {
         })
     });
 
-    //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+    /**this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+    ** @req: {
+                "email": "",
+                "dateString": 'YYYY/MM/DD HH:mm:ss'
+              }
+    ** @res: {success: true} 
+    **       err
+    **/ 
     app.post('/resetPassword', function (req, res, next) {
         //use mailer to send email to the email address passed in.
         ////console.log(req);
         // //console.log(JSON.parse(req.body));
         try {
             var user = JSON.parse(req.body);
+            var dateString = user.dateString;
         } catch (error) {
             res.status(500).send({ success: false, error: error });
         }
@@ -76,22 +85,24 @@ module.exports = function (app) {
             text: url,
             html: '<p>' + url + '</p>'
         }
-        //console.log(mailOptions.html);
-        transporter.sendMail(mailOptions, function (error, info) {
-            //console.log(error);
-            //console.log(info);
-            if (error) {
-                //console.log('error sending email for resetting password');
-                res.status(500).send({ success: false, error: error });                
-            }
-            else {
-                //console.log('Email sent: ' + req.param.url);
-                res.status(200).send({ success: true });
-            }
-            nodemailer.getTestMessageUrl(info);
-            transporter.close();
+        var date = new Date();
+        date.format(now, dateString);
+        var job = schedule.scheduledJob(date, function(){
+            //console.log(mailOptions.html);
+            transporter.sendMail(mailOptions, function (error, info) {
+                //console.log(error);
+                //console.log(info);
+                if (error) {
+                    //console.log('error sending email for resetting password');
+                    res.status(500).send({ success: false, error: error });                
+                }
+                else {
+                    //console.log('Email sent: ' + req.param.url);
+                    res.status(200).send({ success: true });
+                }
+                nodemailer.getTestMessageUrl(info);
+                transporter.close();
+            });
         });
-
-
     });
 }
