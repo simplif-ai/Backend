@@ -29,8 +29,33 @@ module.exports = function (app) {
       console.log('URL: ' + URL);
 
       request(URL, function (error, response, body) {
-        console.log(extractor(body).text);
-        res.status(200).send({success: true, error: null});
+        console.log('error: ' + error);
+        //console.log('response: ' + JSON.parse(response));
+        let text = extractor(body).text;
+        console.log('text: ' + text);
+
+        var options = {
+          headers: {
+              'Content-Type': 'text/plain'
+              },
+              body: JSON.stringify({
+                text: text
+              }),
+              method: 'POST'
+        }
+          
+        request.post(
+            'http://simplif-ai-backend.us-east-2.elasticbeanstalk.com/summarizertext',
+             options ,
+            function (error, response, body) {
+              console.log(body);
+                if (!error && response.statusCode == 200) {
+                    res.status(200).send(response.body);
+                } else {
+                    rest.status(500).send({success: false, error: error});
+                }
+            }
+        );
       });
     });
 
