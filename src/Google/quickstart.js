@@ -62,9 +62,7 @@ function getProfilePicture(token, emailAddress, callback) {
 
       callback(error, url)
     });
-    
   });
-  
 };
 
 /**
