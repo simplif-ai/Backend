@@ -207,6 +207,22 @@ Sends:
 }
 ```
 
+### /parseURL
+Receives:
+```javascript
+{
+    URL: String,
+}
+```
+Sends:
+```javascript
+{
+    success: Bool,
+    text: [String], //this is the same as what is returned from the summarizertext endpoint!
+    error?: String
+}
+```
+
 ### /addCollaborator
 Receives:
 ```javascript

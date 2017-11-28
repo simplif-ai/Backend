@@ -29,11 +29,10 @@ module.exports = function (app) {
       console.log('URL: ' + URL);
 
       request(URL, function (error, response, body) {
-        console.log('error: ' + error);
-        //console.log('response: ' + JSON.parse(response));
         let text = extractor(body).text;
         console.log('text: ' + text);
 
+        //text parsed, make a request to the API:
         var options = {
           headers: {
               'Content-Type': 'text/plain'
