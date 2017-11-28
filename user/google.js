@@ -76,17 +76,16 @@ module.exports = function (app) {
     app.post('/loginToGoogle', function(req, res) {
       try {
         var body = JSON.parse(req.body);
+        var googleCode = body.googleCode;
       } catch (error) {
         res.status(500).send({success: false, error: "No body found"});
         return;
       }
 
-      try {
-        var googleCode = body.googleCode;
-      } catch (error) {
-        res.status(500).send({success: false, error: "No Google code provided"});
-        return;
-      }
+      if (!(googleCode)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleCode."});
+            return;
+      } 
 
       //if I was given a googleCode, try to create a token out of it
       googledrive.authenticateUser(googleCode, function(success, authorizeURL, googleToken) {
@@ -116,6 +115,11 @@ module.exports = function (app) {
           return;
       }
 
+      if (!(googleToken && text && title)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken, title, or text."});
+            return;
+      }
+
     //(title, text, auth)
       googledrive.upload(title, text, googleToken, function(error, file) {
         if (error) {
@@ -143,6 +147,11 @@ module.exports = function (app) {
           return;
       }
 
+      if (!(googleToken && collaboratorEmail && fileID)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken, fileID, or collaboratorEmail."});
+            return;
+      }
+
       //TODO: store the collaborator's email in our database
       googledrive.addCollaborator(googleToken, fileID, collaboratorEmail, function(error) {
         if (error != null) {
@@ -168,6 +177,11 @@ module.exports = function (app) {
           return;
       }
 
+      if (!(googleToken && email)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken or email."});
+            return;
+      }
+
       googledrive.getProfilePicture(googleToken, email, function(err, url) {
         console.log(url);
           if (err != null) {
@@ -189,9 +203,13 @@ module.exports = function (app) {
         var name = body.name;
         var googleToken = body.googleToken;
       } catch(error) {
-          console.log(error);
           res.status(500).send({success: false, error: error});
           return;
+      }
+
+      if (!(googleToken && name)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken or name."});
+            return;
       }
 
     //(name, token, callback) 
