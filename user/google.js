@@ -54,6 +54,11 @@ module.exports = function (app) {
           return;
         }
 
+        if (!(googleToken && event)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken and event."});
+            return;
+        } 
+
         googledrive.createCalendarEvent(googleToken, event, function(success, eventID, error) {
             if (!success || error != null || eventID == null) {
               res.status(500).send({success: false, eventID: null, error: error});
