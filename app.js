@@ -1,5 +1,5 @@
 /**
- * midlle ware to connect frontend with api for summarizer
+ * middle ware to connect frontend with api for summarizer
  * creates all dependencies and endpoints
  * Author: Lena Arafa
  * Date: 9/24/2017
@@ -51,6 +51,7 @@ require('./user/profile')(app);
 require('./user/google')(app);
 require('./dbFunc/darkMode')(app);
 require('./dbFunc/feedback')(app);
+require('./dbFunc/parseArticles')(app);
 
 //Slackbot endpoint
 app.post('/slack/events', function (req, res) {
