@@ -6,6 +6,7 @@ module.exports = function (app) {
     var utility = require('./../utility');
     var upload = utility.upload;
     var connection = utility.connection;
+    var path = require('path');
 
     app.post('/profile', function (req, res) {
 
@@ -185,6 +186,7 @@ app.post('/getpicture', function (req, res) {
         var picturePath = result[0].picturePath;
         console.log("result:", result[0]);
         try {
+          console.log("absolute path: ", path.resolve(picturePath));
           res.sendFile(path.resolve(picturePath));
         } catch (err) {
           console.log("here4:", err);
