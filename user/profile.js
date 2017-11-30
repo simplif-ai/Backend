@@ -132,7 +132,8 @@ module.exports = function (app) {
                 // the *entire* stdout and stderr (buffered)
                 console.log(`stdout: ${stdout}`);
                 console.log(`stderr: ${stderr}`);
-                connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [stdout, userEmail], function (err, result) {
+                var str = stdout + " " + picturePath;
+                connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [str, userEmail], function (err, result) {
                     console.log("inside insert");
                     if (err) {
                         res.status(500).send({ success: false, error: err });
