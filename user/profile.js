@@ -112,9 +112,11 @@ module.exports = function (app) {
           res.status(500).send({ success: false, error: err });
         }*/
         var userEmail = req.body.email;
-        var picturePath = __dirname + '/uploads/' + req.file.filename;
-
+        var picturePath = './uploads/' + req.file.filename;
+        console.log("pic",picturePath)
         console.log("email:", userEmail);
+        console.log("dirname: ", __dirname);
+        console.log("filename: ", req.file.filename)
         if (!req.file) {
             console.log("File has not been received");
             res.status(500).send({ success: false, error: "File has not been received" });
@@ -230,15 +232,198 @@ app.post('/getpicture', function (req, res) {
     });
 
     /**
-    * delete collaborators 
+    * get list of collaborators for the user's note
+    * @req:{'userEmail':'','noteId':''} 
+    * @res:[{'colabEmail':'', 'name':''}] 
+    *       err
     **/
-    app.post('/addcollaborators', function (req, res) {
+    app.post('/getcollaborators', function (req, res) {
         try {
             var body = JSON.parse(req.body);
         } catch (error) {
             res.status(500).send({ success: false, error: error });
         }
+        var userEmail = body.userEmail;
+        var noteID = body.noteID;
+        //get the userID from userEmail
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                //console.log("Obtained userId from user email");
+                //console.log("result:", result);
+                userID = result[0].idUser;
+           
+                //console.log("userId:", userID);
+                //console.log("collaborator: ", collaborator);
+                //get the user's collaborators ids
+                connection.query("SELECT * FROM collaborators WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
+                    //console.log("goes in here");
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        //console.log("created row in the collaborator table");
+                        //add all notes and their name to an array 
+                        var array = [];
+                        var userIdColabList = [];
+                        console.log(result.length);
+                        for(var i = 0; i < result.length; i++){
+                            userIdColabList.push(result[i].userIdColab);
+                            //console.log("colabId:", userIdColab);
+                            console.log("goes here1");
+                        }
+                        var userIdString = "SELECT * FROM users WHERE idUser = ?"
+                        for(var i = 1; i < userIdColabList.length; i++) {
+                            userIdString += " OR idUser = ?"
+                        }
+                        console.log(userIdString);
+                        connection.query(userIdString, userIdColabList, function (err, result) {
+                            console.log("goes here");
+                            if (err) {
+                                console.log("goes on here");
+                                res.status(500).send({ success: false, error: err });
+                            }
+                            else {
+                                console.log("comes here");
+                                for(var i = 0; i < result.length; i++) {
+                                
+                                    var colabEmail = result[i].email;
+                                    var name = result[i].name;
+                                    console.log("colabEmail:", colabEmail);
+                                    console.log("name:", name);
+                                    var collaborator = {
+                                        colabEmail: colabEmail,
+                                        name: name
+                                    }
+                                    console.log("collaborators:", collaborator);
+                                    array.push(collaborator);
+                                    console.log(array);
+                                }
+                                console.log("I love Liam <3");
+                                //send back an array of the collaborator that contains colabEmail and name
+                                console.log("array", array);
+                                res.status(200);
+                                res.send(array);
+                            }
+                        });   
+                    }
+                });
+            }
+        });
+
     });
 
+
+    /**
+    * delete collaborators 
+    * @req:{'colabEmail':'','noteId':''} 
+    * @res:{success: true}
+    *       err
+    **/
+    app.post('/deletecollaborators', function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+        }
+        var colabEmail = body.colabEmail;
+        var noteID = body.noteID;
+        //get the userID from userEmail
+        connection.query("SELECT * FROM users WHERE email = ?", [colabEmail], function (err, result) {
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                //console.log("Obtained userId from user email");
+                //console.log("result:", result);
+                userIdColab = result[0].idUser;
+                //console.log("colabId:", userIdColab);
+                connection.query("DELETE FROM collaborators WHERE userIdColab = ? AND noteID = ?", [userIdColab, noteID], function (err, result) {
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        res.status(200).send({ success: true });
+                    }
+                });
+            }
+        });
+    });
+
+    /**
+    * user can add feedback 
+    * @req:{'email':'', 'feedback' : ''} 
+    * @res:{success: true}
+    *       err
+    **/
+    app.post('/addfeedback', function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+            var userEmail = body.email;
+            var feedback = body.feedback;
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+        }
+
+        //get the userID from userEmail
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                var userID = result[0].idUser;
+                //add feedback to user table
+                connection.query("UPDATE users SET feedback = ? WHERE idUser = ?", [feedback, userID], function (err, result) {
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        res.status(200).send({ success: true });
+                    }
+                });
+            }
+        });
+    });
+
+
+    /**
+    * as a developer would like to view all feedback
+    * @req:{} 
+    * @res:[{"userID": "", "name": "", "feedback": ""}]
+    *       err
+    **/
+    app.post('/viewfeedback', function (req, res) {
+        /*try {
+            var body = JSON.parse(req.body);
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+        }*/
+
+        //get the whole table of users
+        connection.query("SELECT * FROM users", function (err, result) {
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                var array = [];
+                for(var i = 0; i < result.length; i++) {
+                    var userID = result[i].idUser;
+                    var name = result[i].name;
+                    var feedback = result[i].feedback;
+                    var developFeed = 
+                    {
+                        userID: userID,
+                        name: name,
+                        feedback: feedback
+                    }
+                    array.push(developFeed);
+                }
+                res.status(200);
+                res.send(array);
+            }
+        });
+    });
 }
 
