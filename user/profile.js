@@ -122,16 +122,36 @@ module.exports = function (app) {
             res.status(500).send({ success: false, error: "File has not been received" });
         }
         else {
+            const { exec } = require('child_process');
+            exec('ls ./uploads', (err, stdout, stderr) => {
+                if (err) {
+                  // node couldn't execute the command
+                  return;
+                }
+              
+                // the *entire* stdout and stderr (buffered)
+                console.log(`stdout: ${stdout}`);
+                console.log(`stderr: ${stderr}`);
+                connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [stdout, userEmail], function (err, result) {
+                    console.log("inside insert");
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    } else {
+                        res.status(200).send({ success: true });
+                    }
+                });
+            });
+
             console.log("here2");
             //store path in sql
-            connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [picturePath, userEmail], function (err, result) {
-                console.log("inside insert");
-                if (err) {
-                    res.status(500).send({ success: false, error: err });
-                } else {
-                    res.status(200).send({ success: true });
-                }
-            });
+            // connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [picturePath, userEmail], function (err, result) {
+            //     console.log("inside insert");
+            //     if (err) {
+            //         res.status(500).send({ success: false, error: err });
+            //     } else {
+            //         res.status(200).send({ success: true });
+            //     }
+            // });
         }
     });
 
