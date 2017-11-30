@@ -260,4 +260,32 @@ Send:
     err
 } 
 
+### /addfeedback
+* user can add feedback 
+
+Receives: 
+    {
+        'email':'', 
+        'feedback' : ''
+    } 
+
+Send:
+    {
+        'success': 'true'
+    }
+    err
+
+### /viewfeedback
+* as a developer would like to view all feedback
+    
+Send:
+    [
+            {
+                "userID": "", 
+                "name": "", 
+                "feedback": ""
+            }
+    ]
+    err
+
    
