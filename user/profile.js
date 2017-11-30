@@ -112,7 +112,7 @@ module.exports = function (app) {
           res.status(500).send({ success: false, error: err });
         }*/
         var userEmail = req.body.email;
-        var picturePath = './uploads/' + req.file.filename;
+        var picturePath = 'uploads/' + req.file.filename;
         console.log("pic",picturePath)
         console.log("email:", userEmail);
         console.log("dirname: ", __dirname);
@@ -133,7 +133,7 @@ module.exports = function (app) {
                 console.log(`stdout: ${stdout}`);
                 console.log(`stderr: ${stderr}`);
                 var str = stdout + " " + picturePath;
-                connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [str, userEmail], function (err, result) {
+                connection.query('UPDATE users SET picturePath = ? WHERE email = ?', [picturePath, userEmail], function (err, result) {
                     console.log("inside insert");
                     if (err) {
                         res.status(500).send({ success: false, error: err });
@@ -185,7 +185,7 @@ app.post('/getpicture', function (req, res) {
         var picturePath = result[0].picturePath;
         console.log("result:", result[0]);
         try {
-          res.sendFile(picturePath);
+          res.sendFile(path.resolve(picturePath));
         } catch (err) {
           console.log("here4:", err);
           res.status(500).send({ success: false, error: err });
