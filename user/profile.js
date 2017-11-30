@@ -7,6 +7,7 @@ module.exports = function (app) {
     var upload = utility.upload;
     var connection = utility.connection;
     var path = require('path');
+    var fs = require('fs');
 
     app.post('/profile', function (req, res) {
 
@@ -187,7 +188,16 @@ app.post('/getpicture', function (req, res) {
         console.log("result:", result[0]);
         try {
           console.log("absolute path: ", path.resolve(picturePath));
-          res.sendFile(path.resolve(picturePath));
+          //res.sendFile(path.resolve(picturePath));
+          //var file = fs.readFile(picturePath, 'binary');
+          //res.writeFile(picturePath, );
+         // res.attachment(picturePath);
+          //res.end('Downloaded', UTF-8);
+          var filename = path.basename(picturePath);
+          //res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
+          //res.setHeader('Content-Transfer-Encoding', 'binary');
+          //res.setHeader('Content-Type', 'application/octet-stream');
+          res.download(path.resolve(picturePath));
         } catch (err) {
           console.log("here4:", err);
           res.status(500).send({ success: false, error: err });
