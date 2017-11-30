@@ -212,6 +212,7 @@ app.post("/listnotes", function(req, res){
               }
               array.push(noteObject);
             }
+            res.status(200);
             //send back an array of noteObject that contains noteID and name
             res.send(array);
           }
@@ -223,7 +224,10 @@ app.post("/listnotes", function(req, res){
 
   /**
    ** Click on a note and view its summary and/or user notes(if exists)
-   ** @req: {"email": ""}
+   ** @req: {
+                "email": "",
+                "noteID": ""
+            }
    ** @res: [{"summary" : "", "noteText" : ""}]
    **/
   app.post("/getsumandnote", function(req, res) {
@@ -250,6 +254,7 @@ app.post("/listnotes", function(req, res){
                  res.status(500).send({ success: false, error: err });
                }
                else {
+                   console.log("hi: ", result[0]);
                     var noteText = result[0].noteText;
                     connection.query ("SELECT * FROM summaries WHERE noteID = ?",[noteID], function(err, result){
                         if (err) {
@@ -266,6 +271,7 @@ app.post("/listnotes", function(req, res){
                             }
                             console.log("noteandsum:", noteandsum);
                             array.push(noteandsum);
+                            res.status(200);
                             res.send(array);
                         }
                     });

@@ -294,7 +294,7 @@ app.post('/getpicture', function (req, res) {
                         //add all notes and their name to an array 
                         var array = [];
                         var userIdColabList = [];
-                        console.log(result.length);
+                        //console.log(result.length);
                         for(var i = 0; i < result.length; i++){
                             userIdColabList.push(result[i].userIdColab);
                             //console.log("colabId:", userIdColab);
@@ -304,7 +304,7 @@ app.post('/getpicture', function (req, res) {
                         for(var i = 1; i < userIdColabList.length; i++) {
                             userIdString += " OR idUser = ?"
                         }
-                        console.log(userIdString);
+                        //console.log(userIdString);
                         connection.query(userIdString, userIdColabList, function (err, result) {
                             //console.log("goes here");
                             if (err) {

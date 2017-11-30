@@ -232,8 +232,9 @@ Send:
 
  Receives:
  {
-     "email": ""
- }
+    "email": "",
+    "noteID": ""
+}
 
  Send:
  {

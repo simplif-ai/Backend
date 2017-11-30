@@ -78,7 +78,7 @@ describe('save/update notes to db with note name', () => {
         //console.log("error: ", err);
       res.should.have.status(200);
       res.body.should.be.a('object');
-      res.body.should.have.property('success').eql(true);
+      res.body.should.have.property('name');
       done();
     });
 
@@ -125,9 +125,9 @@ describe('listnotes', () => {
       .end((err, res)=>{
           //console.log("error: ", err);
         res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('noteID');
-        res.body.should.have.property('name');
+        res.body.should.be.a('array');
+        //res.body.should.have.property('noteID');
+        //res.body.should.have.property('name');
         done();
       });
 
@@ -141,6 +141,7 @@ describe('getsumandnote', () => {
       //the text to send to request
       let req = {
         "email": "test@gmail.com",
+        "noteID": "27"
       };
       let reqtext = JSON.stringify(req);
       chai.request(app)
@@ -150,9 +151,9 @@ describe('getsumandnote', () => {
       .end((err, res)=>{
           //console.log("error: ", err);
         res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('summary');
-        res.body.should.have.property('noteText');
+        res.body.should.be.a('array');
+        //res.body.should.have.property('summary');
+        //res.body.should.have.property('noteText');
         done();
       });
       
