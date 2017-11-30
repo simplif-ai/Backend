@@ -8,6 +8,8 @@ module.exports = function (app) {
     var connection = utility.connection;
     var path = require('path');
     var fs = require('fs');
+    var nodemailer = require('nodemailer');
+    var schedule = require('node-schedule');
 
     app.post('/profile', function (req, res) {
 
@@ -168,38 +170,29 @@ app.post('/getpicture', function (req, res) {
     try {
       var body = JSON.parse(req.body);
     } catch (err) {
-      console.log("here1:", err);
+      //console.log("here1:", err);
       res.status(500).send({ success: false, error: err });
     }
-    console.log("body", body);
+    //console.log("body", body);
     var userEmail = body.email;
-    console.log("email", userEmail);
+    //console.log("email", userEmail);
     //query db for picturepath
     connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-      console.log("gets here1");
-      console.log("result:", result);
+      //console.log("gets here1");
+      //console.log("result:", result);
       if (err) {
-        console.log("here3:", err);
+        //console.log("here3:", err);
         res.status(500).send({ success: false, error: err });
       }
       else {
-        console.log("Obtained userId from user email");
+        //console.log("Obtained userId from user email");
         var picturePath = result[0].picturePath;
-        console.log("result:", result[0]);
+        //console.log("result:", result[0]);
         try {
-          console.log("absolute path: ", path.resolve(picturePath));
-          //res.sendFile(path.resolve(picturePath));
-          //var file = fs.readFile(picturePath, 'binary');
-          //res.writeFile(picturePath, );
-         // res.attachment(picturePath);
-          //res.end('Downloaded', UTF-8);
-          var filename = path.basename(picturePath);
-          //res.setHeader('Content-Disposition', 'attachment; filename=' + filename);
-          //res.setHeader('Content-Transfer-Encoding', 'binary');
-          //res.setHeader('Content-Type', 'application/octet-stream');
+          //console.log("absolute path: ", path.resolve(picturePath));
           res.download(path.resolve(picturePath));
         } catch (err) {
-          console.log("here4:", err);
+          //console.log("here4:", err);
           res.status(500).send({ success: false, error: err });
         }
       }
@@ -305,7 +298,7 @@ app.post('/getpicture', function (req, res) {
                         for(var i = 0; i < result.length; i++){
                             userIdColabList.push(result[i].userIdColab);
                             //console.log("colabId:", userIdColab);
-                            console.log("goes here1");
+                           // console.log("goes here1");
                         }
                         var userIdString = "SELECT * FROM users WHERE idUser = ?"
                         for(var i = 1; i < userIdColabList.length; i++) {
@@ -313,30 +306,29 @@ app.post('/getpicture', function (req, res) {
                         }
                         console.log(userIdString);
                         connection.query(userIdString, userIdColabList, function (err, result) {
-                            console.log("goes here");
+                            //console.log("goes here");
                             if (err) {
-                                console.log("goes on here");
+                                //console.log("goes on here");
                                 res.status(500).send({ success: false, error: err });
                             }
                             else {
-                                console.log("comes here");
+                                //console.log("comes here");
                                 for(var i = 0; i < result.length; i++) {
                                 
                                     var colabEmail = result[i].email;
                                     var name = result[i].name;
-                                    console.log("colabEmail:", colabEmail);
-                                    console.log("name:", name);
+                                    //console.log("colabEmail:", colabEmail);
+                                    //console.log("name:", name);
                                     var collaborator = {
                                         colabEmail: colabEmail,
                                         name: name
                                     }
-                                    console.log("collaborators:", collaborator);
+                                    //console.log("collaborators:", collaborator);
                                     array.push(collaborator);
-                                    console.log(array);
+                                    //console.log(array);
                                 }
-                                console.log("I love Liam <3");
                                 //send back an array of the collaborator that contains colabEmail and name
-                                console.log("array", array);
+                                //console.log("array", array);
                                 res.status(200);
                                 res.send(array);
                             }
@@ -456,6 +448,63 @@ app.post('/getpicture', function (req, res) {
                 res.status(200);
                 res.send(array);
             }
+        });
+    });
+
+    /**this endpoint will send an email to the email passed in using the mailer. The email will contain a reminder message.
+    ** @req: {
+                "email": "",
+                "dateString": 'YYYY/MM/DD HH:mm:ss',
+                "message": ""
+              }
+    ** @res: {success: true} 
+    **       err
+    **/ 
+    app.post('/emailReminder', function (req, res, next) {
+        //use mailer to send email to the email address passed in.
+        ////console.log(req);
+        // //console.log(JSON.parse(req.body));
+        try {
+            var user = JSON.parse(req.body);
+            var dateString = user.dateString;
+            var message = user.message;
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+        }
+        var email = user.email;
+        var transporter = nodemailer.createTransport({
+            service: 'GMAIL',
+            auth: {
+                user: 'simplif.ai17@gmail.com',
+                pass: 'simplif.ai2017'
+            }
+        });
+        //console.log(transporter);
+        var mailOptions = {
+            from: 'simplif.ai17@gmail.com',
+            to: email,
+            subject: 'Reminder from Simplif.ai',
+            text: message,
+            html: '<p>' + message + '</p>'
+        }
+        var date = new Date(dateString);
+        //date.format(now, dateString);
+        var job = schedule.scheduleJob(date, function(){
+            //console.log(mailOptions.html);
+            transporter.sendMail(mailOptions, function (error, info) {
+                //console.log(error);
+                //console.log(info);
+                if (error) {
+                    //console.log('error sending email for resetting password');
+                    res.status(500).send({ success: false, error: error });                
+                }
+                else {
+                    //console.log('Email sent: ' + req.param.url);
+                    res.status(200).send({ success: true });
+                }
+                nodemailer.getTestMessageUrl(info);
+                transporter.close();
+            });
         });
     });
 }

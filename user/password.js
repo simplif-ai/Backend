@@ -7,7 +7,6 @@ module.exports = function (app) {
     var connection = utility.connection;
     var hash = utility.hash
     var nodemailer = require('nodemailer');
-    var schedule = require('node-schedule');
     //this endpoint allows the user to change their password in the database.
     app.post('/changePassword', function (req, res) {
 
@@ -64,7 +63,6 @@ module.exports = function (app) {
         // //console.log(JSON.parse(req.body));
         try {
             var user = JSON.parse(req.body);
-            var dateString = user.dateString;
         } catch (error) {
             res.status(500).send({ success: false, error: error });
         }
@@ -85,24 +83,22 @@ module.exports = function (app) {
             text: url,
             html: '<p>' + url + '</p>'
         }
-        var date = new Date();
-        date.format(now, dateString);
-        var job = schedule.scheduledJob(date, function(){
-            //console.log(mailOptions.html);
-            transporter.sendMail(mailOptions, function (error, info) {
-                //console.log(error);
-                //console.log(info);
-                if (error) {
-                    //console.log('error sending email for resetting password');
-                    res.status(500).send({ success: false, error: error });                
-                }
-                else {
-                    //console.log('Email sent: ' + req.param.url);
-                    res.status(200).send({ success: true });
-                }
-                nodemailer.getTestMessageUrl(info);
-                transporter.close();
-            });
-        });
+ 
+        //console.log(mailOptions.html);
+        transporter.sendMail(mailOptions, function (error, info) {
+            //console.log(error);
+            //console.log(info);
+            if (error) {
+                //console.log('error sending email for resetting password');
+                 res.status(500).send({ success: false, error: error });                
+            }
+            else {
+                //console.log('Email sent: ' + req.param.url);
+                res.status(200).send({ success: true });
+            }
+            nodemailer.getTestMessageUrl(info);
+            transporter.close();
+        });   
     });
+
 }
