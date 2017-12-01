@@ -23,7 +23,7 @@ module.exports = function (app) {
         }
         */
         //console.log('Connected to database.');
-        //console.log("body: ", req.body);
+        console.log("body: ", req.body);
         try {
             var body = JSON.parse(req.body);
         } catch (error) {
@@ -34,12 +34,44 @@ module.exports = function (app) {
         var text = body.text;
         var name = text.substring(0, 15);
         var datetime = new Date();
+        var noteid = body.noteID
         //console.log("email: ", body.email);
-        //console.log("text: ", body.text);
+        console.log("noteID: ", noteid);
+
+        if (noteid != null) {
+            console.log("goes here");
+            connection.query("SELECT * FROM notes WHERE noteID = ?", [noteid], function (err, result) {
+                console.log("goes in here1");
+                if (err) {
+                    res.status(500).send({ success: false, error: err });
+                }
+                else {
+                    //console.log("created row in the notes table");
+                    //add a summary row for the new summarized text
+                    //console.log("noteID:" + result.insertId);
+
+                    connection.query('UPDATE summaries SET summarizedText = ? WHERE noteID = ?', [text, noteid], function (err, result) {
+                        //console.log("inside insert");
+                        if (err) {
+                            res.status(500).send({ success: false, error: err });
+                        } else {
+                            var id = {
+                                noteID: noteid
+                            }
+                            //send status
+                            //res.sendStatus(200);
+                            //send nodeID
+                            res.status(200).send(id);
+                        }
+                    });
+                }
+            });
+        }
+        else {
 
         //get userid from email
         connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-            //console.log("gets here1");
+            console.log("gets here1");
             //console.log("result:", result);
             if (err) {
                 res.status(500).send({ success: false, error: err });
@@ -47,48 +79,49 @@ module.exports = function (app) {
             else {
                 //console.log("Obtained userId from user email");
                 var id = result[0].idUser;
-                //console.log("userId:", id);
-                //Add a column for new summarited text in note
-                //noteText is when a request made to save user's notes
-                var note = {
-                    name: name,
-                    dateRecorded: datetime,
-                    noteText: null,
-                    userID: id
-                };
-                //console.log("note: ", note);
-                connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
-                    //console.log("goes in here");
-                    if (err) {
-                        res.status(500).send({ success: false, error: err });
-                    }
-                    else {
-                        //console.log("created row in the notes table");
-                        //add a summary row for the new summarized text
-                        //console.log("noteID:" + result.insertId);
-                        var noteID = result.insertId;
-                        var newSumm = {
-                            summarizedText: text,
-                            noteID: noteID
-                        };
-                        connection.query('INSERT INTO summaries SET ?', [newSumm], function (err, result) {
-                            //console.log("inside insert");
-                            if (err) {
-                                res.status(500).send({ success: false, error: err });
-                            } else {
-                                var id = {
-                                    noteID: noteID
+                    //console.log("userId:", id);
+                    //Add a column for new summarited text in note
+                    //noteText is when a request made to save user's notes
+                    var note = {
+                        name: name,
+                        dateRecorded: datetime,
+                        noteText: null,
+                        userID: id
+                    };
+                    //console.log("note: ", note);
+                    connection.query("INSERT INTO notes SET ?", [note], function (err, result) {
+                        //console.log("goes in here");
+                        if (err) {
+                            res.status(500).send({ success: false, error: err });
+                        }
+                        else {
+                            //console.log("created row in the notes table");
+                            //add a summary row for the new summarized text
+                            //console.log("noteID:" + result.insertId);
+                            var noteID = result.insertId;
+                            var newSumm = {
+                                summarizedText: text,
+                                noteID: noteID
+                            };
+                            connection.query('INSERT INTO summaries SET ?', [newSumm], function (err, result) {
+                                //console.log("inside insert");
+                                if (err) {
+                                    res.status(500).send({ success: false, error: err });
+                                } else {
+                                    var id = {
+                                        noteID: noteID
+                                    }
+                                    //send status
+                                    //res.sendStatus(200);
+                                    //send nodeID
+                                    res.status(200).send(id);
                                 }
-                                //send status
-                                //res.sendStatus(200);
-                                //send nodeID
-                                res.status(200).send(id);
-                            }
-                        });
-                    }
-                });
-            }
+                            });
+                        }
+                    });
+                }
         });
+    }
     });
 
     /**
@@ -140,10 +173,10 @@ module.exports = function (app) {
                 }
                 else {
                     //console.log("Success!");
-                    var nameSend = 
-                    {
-                        name:name
-                    }
+                    var nameSend =
+                        {
+                            name: name
+                        }
                     res.status(200);
                     res.send(nameSend);
                     //res.status(200).send({ success: true,  });
@@ -160,10 +193,10 @@ module.exports = function (app) {
                 }
                 else {
                     //console.log("Success!");
-                    var nameSend = 
-                    {
-                        name:name
-                    }
+                    var nameSend =
+                        {
+                            name: name
+                        }
                     res.status(200);
                     res.send(nameSend);
                 }
@@ -177,154 +210,154 @@ module.exports = function (app) {
  * @req: {"email": ""}
  * @res: [{"noteID": "", "name":""}]
  */
-app.post("/listnotes", function(req, res){
-    try {
-      var body = JSON.parse(req.body);
-    } catch (error) {
-      res.status(500).send({ success: false, error: err });
-    }
-    var userEmail = body.email;
-    //get users from email
-    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-     //console.log("gets here1");
-     //console.log("result:", result);
-      if (err) {
-        res.status(500).send({ success: false, error: err });
-      }
-      else {
-       //console.log("Obtained userId from user email");
-        var id = result[0].idUser;
-       //console.log("id:", id);
-        //get the all the notes of the giver userID
-        connection.query("SELECT * FROM notes WHERE userID = ?",[id], function(err, result) {
-          //console.log("here");
-          if (err) {
+    app.post("/listnotes", function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+        } catch (error) {
             res.status(500).send({ success: false, error: err });
-          }
-          else {
-            //add all notes and their name to an array 
-            var array = [];
-            for(var i = 0; i < result.length; i++){
-              var noteID = result[i].noteID;
-              var name = result[i].name;
-              var noteObject= {
-                noteID: noteID,
-                name: name
-              }
-              array.push(noteObject);
+        }
+        var userEmail = body.email;
+        //get users from email
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            //console.log("gets here1");
+            //console.log("result:", result);
+            if (err) {
+                res.status(500).send({ success: false, error: err });
             }
-            res.status(200);
-            //send back an array of noteObject that contains noteID and name
-            res.send(array);
-          }
-        });
-      }
-    });
-  });
-
-
-  /**
-   ** Click on a note and view its summary and/or user notes(if exists)
-   ** @req: {
-                "email": "",
-                "noteID": ""
-            }
-   ** @res: [{"summary" : "", "noteText" : "", "name": ""}]
-   **/
-  app.post("/getsumandnote", function(req, res) {
-    try {
-        var body = JSON.parse(req.body);
-    } catch (error) {
-        res.status(500).send({ success: false, error: err });
-    }
-    var userEmail = body.email;
-    var noteID = body.noteID;
-    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-        //console.log("gets here1");
-        //console.log("result:", result);
-         if (err) {
-           res.status(500).send({ success: false, error: err });
-         }
-         else {
-            var id = result[0].idUser;
-            //console.lo("id:", id);
-             //get the all the notes of the giver userID
-             connection.query("SELECT * FROM notes WHERE userID = ? AND noteID = ?",[id, noteID], function(err, result) {
-               //console.log("here");
-               if (err) {
-                 res.status(500).send({ success: false, error: err });
-               }
-               else {
-                   console.log("hi: ", result[0]);
-                    var noteText = result[0].noteText;
-                    var name = result[0].name;
-                    connection.query ("SELECT * FROM summaries WHERE noteID = ?",[noteID], function(err, result){
-                        if (err) {
-                            res.status(500).send({ success: false, error: err });
-                        }
-                        else {
-                            var array = [];
-                            console.log("result", result);
-                            var summary = result[0].summarizedText;
-                            console.log("summary", summary);
-                            var noteandsum = {
-                                summary: summary,
-                                noteText: noteText,
+            else {
+                //console.log("Obtained userId from user email");
+                var id = result[0].idUser;
+                //console.log("id:", id);
+                //get the all the notes of the giver userID
+                connection.query("SELECT * FROM notes WHERE userID = ?", [id], function (err, result) {
+                    //console.log("here");
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        //add all notes and their name to an array 
+                        var array = [];
+                        for (var i = 0; i < result.length; i++) {
+                            var noteID = result[i].noteID;
+                            var name = result[i].name;
+                            var noteObject = {
+                                noteID: noteID,
                                 name: name
                             }
-                            console.log("noteandsum:", noteandsum);
-                            array.push(noteandsum);
-                            res.status(200);
-                            res.send(array);
+                            array.push(noteObject);
                         }
-                    });
-                }
-            });
-         }
+                        res.status(200);
+                        //send back an array of noteObject that contains noteID and name
+                        res.send(array);
+                    }
+                });
+            }
+        });
     });
-  });
 
-   /**
-   ** To delete a whole note with summary and note 
-   ** @req: {"email": "", "noteID": }
-   ** @res: {'success: true'} 
-   **       err
-   **/
-  app.post("/deletenote", function(req, res) {
-    try {
-        var body = JSON.parse(req.body);
-        var userEmail = body.email;
-        var noteID =  body.noteID;
-    } catch (error) {
-        res.status(500).send({ success: false, error: err });
-    }
-    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-        //console.log("gets here1");
-        //console.log("result:", result);
-         if (err) {
-           res.status(500).send({ success: false, error: err });
-         }
-         else {
-            var userID = result[0].idUser;
-            connection.query("DELETE FROM notes WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
-                if (err) {
-                    res.status(500).send({ success: false, error: err });
-                }
-                else {
-                    connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function (err, result) {
-                        if (err) {
-                            res.status(500).send({ success: false, error: err });
-                        }
-                        else {
-                            console.log("result", result[0]);
-                            res.status(200).send({ success: true });
-                        }
-                    });
-                }
-            });
+
+    /**
+     ** Click on a note and view its summary and/or user notes(if exists)
+     ** @req: {
+                  "email": "",
+                  "noteID": ""
+              }
+     ** @res: [{"summary" : "", "noteText" : "", "name": ""}]
+     **/
+    app.post("/getsumandnote", function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+        } catch (error) {
+            res.status(500).send({ success: false, error: err });
         }
+        var userEmail = body.email;
+        var noteID = body.noteID;
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            //console.log("gets here1");
+            //console.log("result:", result);
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                var id = result[0].idUser;
+                //console.lo("id:", id);
+                //get the all the notes of the giver userID
+                connection.query("SELECT * FROM notes WHERE userID = ? AND noteID = ?", [id, noteID], function (err, result) {
+                    //console.log("here");
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        console.log("hi: ", result[0]);
+                        var noteText = result[0].noteText;
+                        var name = result[0].name;
+                        connection.query("SELECT * FROM summaries WHERE noteID = ?", [noteID], function (err, result) {
+                            if (err) {
+                                res.status(500).send({ success: false, error: err });
+                            }
+                            else {
+                                var array = [];
+                                console.log("result", result);
+                                var summary = result[0].summarizedText;
+                                console.log("summary", summary);
+                                var noteandsum = {
+                                    summary: summary,
+                                    noteText: noteText,
+                                    name: name
+                                }
+                                console.log("noteandsum:", noteandsum);
+                                array.push(noteandsum);
+                                res.status(200);
+                                res.send(array);
+                            }
+                        });
+                    }
+                });
+            }
+        });
     });
-  });
+
+    /**
+    ** To delete a whole note with summary and note 
+    ** @req: {"email": "", "noteID": }
+    ** @res: {'success: true'} 
+    **       err
+    **/
+    app.post("/deletenote", function (req, res) {
+        try {
+            var body = JSON.parse(req.body);
+            var userEmail = body.email;
+            var noteID = body.noteID;
+        } catch (error) {
+            res.status(500).send({ success: false, error: err });
+        }
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            //console.log("gets here1");
+            //console.log("result:", result);
+            if (err) {
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                var userID = result[0].idUser;
+                connection.query("DELETE FROM notes WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
+                    if (err) {
+                        res.status(500).send({ success: false, error: err });
+                    }
+                    else {
+                        connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function (err, result) {
+                            if (err) {
+                                res.status(500).send({ success: false, error: err });
+                            }
+                            else {
+                                console.log("result", result[0]);
+                                res.status(200).send({ success: true });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
 
 
 }
