@@ -21,11 +21,11 @@ const BUILD_JSDOC_DIR = `${BUILD_DIR}/jsdoc`;
 const BUILD_CONFIG_DIR = `${BUILD_DIR}/source/config`;
 
 gulp.task('lint', 'Validates code with "eslint"', function (done) {
-  gulp.src(GULP_FILE.concat(SRC_FILES, TEST_FILES))
+  /*gulp.src(GULP_FILE.concat(SRC_FILES, TEST_FILES))
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError())
-    .on('finish', done);
+    .on('finish', done);*/
 });
 
 gulp.task('test', 'Runs tests and generates code coverage report', function (done) {
@@ -80,8 +80,6 @@ gulp.task('jsdoc', 'Generates jsdoc', function (done) {
 gulp.task('build', 'Builds source code: validates it and provides an artifacts', function (done) {
   sequence('lint', 'test', 'compile', 'jsdoc', done);
 });
-
-gulp.task('pre-commit', 'Being run automatically on a git pre-commit hook', ['build']);
 
 gulp.task('ci', 'Being run on a CI', ['build']);
 
