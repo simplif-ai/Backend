@@ -241,7 +241,8 @@ Send:
      [
          {
              "summary" : "", 
-             "noteText" : ""
+             "noteText" : "",
+             "name": ""
          }
      ]
  }

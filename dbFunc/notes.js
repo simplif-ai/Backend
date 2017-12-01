@@ -111,8 +111,8 @@ module.exports = function (app) {
         var name = body.name;
         var noteText = body.noteText;
 
-        //console.log("name:", name);
-        //console.log("noteText:", noteText);
+        console.log("name:", name);
+        console.log("noteText:", noteText);
 
         //name is null
         if (name == null) {
@@ -131,10 +131,10 @@ module.exports = function (app) {
         }
         //noteTest is null
         else if (noteText == null) {
-            //console.log("goes in here2");
+            console.log("goes in here2");
             //update the note table with name to one of the noteIds
             connection.query("UPDATE notes SET name = ? WHERE noteID =?", [name, noteID], function (err, result) {
-                //console.log("goes in here");
+                console.log("goes in here1");
                 if (err) {
                     res.status(500).send({ success: false, error: err });
                 }
@@ -146,6 +146,7 @@ module.exports = function (app) {
                     }
                     res.status(200);
                     res.send(nameSend);
+                    //res.status(200).send({ success: true,  });
                 }
             });
         }
@@ -153,7 +154,7 @@ module.exports = function (app) {
             //console.log("goes in here3");
             //update the note table with name and the noteText to one of the noteIds
             connection.query("UPDATE notes SET name = ?, noteText = ? WHERE noteID =?", [name, noteText, noteID], function (err, result) {
-                //console.log("goes in here");
+                console.log("goes in here");
                 if (err) {
                     res.status(500).send({ success: false, error: err });
                 }
@@ -228,7 +229,7 @@ app.post("/listnotes", function(req, res){
                 "email": "",
                 "noteID": ""
             }
-   ** @res: [{"summary" : "", "noteText" : ""}]
+   ** @res: [{"summary" : "", "noteText" : "", "name": ""}]
    **/
   app.post("/getsumandnote", function(req, res) {
     try {
@@ -246,7 +247,7 @@ app.post("/listnotes", function(req, res){
          }
          else {
             var id = result[0].idUser;
-            //console.log("id:", id);
+            //console.lo("id:", id);
              //get the all the notes of the giver userID
              connection.query("SELECT * FROM notes WHERE userID = ? AND noteID = ?",[id, noteID], function(err, result) {
                //console.log("here");
@@ -256,6 +257,7 @@ app.post("/listnotes", function(req, res){
                else {
                    console.log("hi: ", result[0]);
                     var noteText = result[0].noteText;
+                    var name = result[0].name;
                     connection.query ("SELECT * FROM summaries WHERE noteID = ?",[noteID], function(err, result){
                         if (err) {
                             res.status(500).send({ success: false, error: err });
@@ -267,7 +269,8 @@ app.post("/listnotes", function(req, res){
                             console.log("summary", summary);
                             var noteandsum = {
                                 summary: summary,
-                                noteText: noteText
+                                noteText: noteText,
+                                name: name
                             }
                             console.log("noteandsum:", noteandsum);
                             array.push(noteandsum);
