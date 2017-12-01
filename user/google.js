@@ -82,10 +82,10 @@ module.exports = function (app) {
         return;
       }
 
-      if (!(googleCode)) {
+     /*if (!(googleCode)) {
             res.status(500).send({success: false, eventID: null, error: "Failed to find googleCode."});
             return;
-      } 
+      }*/ 
 
       //if I was given a googleCode, try to create a token out of it
       googledrive.authenticateUser(googleCode, function(success, authorizeURL, googleToken) {
