@@ -11,13 +11,45 @@ module.exports = function (app) {
     var nodemailer = require('nodemailer');
     var schedule = require('node-schedule');
 
+    /**
+    * Parses the text from the article and returns the summarized text
+    * @param: req = {userID, prefersEmailUpdates}
+    * @return: res = {success, error?}
+    */
+    app.post('/preferEmailsUpdates', function(req, res) {
+        try {
+            var user = JSON.parse(req.body);
+        } catch (error) {
+            res.status(500).send({ success: false, error: error });
+            return;
+        }
+        var userID = user.userID;
+        var emails = user.prefersEmailUpdates;
+        console.log(userID);
+        console.log(emails);
+
+        connection.query("UPDATE users SET prefersEmailUpdates = ? WHERE idUser = ?", [emails, userID], function (err, result) {
+            if (err) {
+                console.log(err);
+                res.status(500).send({ success: false, error: "This user doesn't exist." });
+            } else {
+                console.log('no error');
+                var data = {
+                    success: true,
+                    prefersEmailUpdates: result[0].prefersEmailUpdates,
+                }
+                res.send(data)
+            }
+        }); 
+    });
+
     app.post('/profile', function (req, res) {
 
         //fetch the user by email and return it in json
         try {
             var user = JSON.parse(req.body);
         } catch (error) {
-            res.status(500).send({ success: false, error: err });
+            res.status(500).send({ success: false, error: error});
         }
         var email = user.email;
         //console.log('req.body', JSON.parse(req.body));

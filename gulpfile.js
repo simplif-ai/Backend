@@ -81,8 +81,6 @@ gulp.task('build', 'Builds source code: validates it and provides an artifacts',
   sequence('lint', 'test', 'compile', 'jsdoc', done);
 });
 
-gulp.task('pre-commit', 'Being run automatically on a git pre-commit hook', ['build']);
-
 gulp.task('ci', 'Being run on a CI', ['build']);
 
 gulp.task('default', ['build']);

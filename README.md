@@ -74,6 +74,24 @@ Sends:
 }
 ```
 
+
+### /uploadfile
+Receives:
+```javascript
+{
+    file: (pdf, pptx, txt)
+}
+```
+
+Sends:
+```javascript
+{
+    success: Bool,
+    text: [String], //this is the same as what is returned from the summarizertext endpoint!
+    error?: String
+}
+```
+
 ### /editProfile
 Receives:
 ```javascript

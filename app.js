@@ -56,6 +56,7 @@ require('./user/google')(app);
 require('./dbFunc/darkMode')(app);
 require('./dbFunc/feedback')(app);
 require('./dbFunc/parseArticles')(app);
+require('./dbFunc/uploadFile')(app);
 
 //Slackbot endpoint
 app.post('/slack/events', function (req, res) {
