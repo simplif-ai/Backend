@@ -16,7 +16,7 @@ module.exports = function (app) {
     * @param: req = {userID, prefersEmailUpdates}
     * @return: res = {success, error?}
     */
-    app.post('/preferEmailsUpdates', function(req, res) {
+    app.post('/preferEmailUpdates', function(req, res) {
         try {
             var user = JSON.parse(req.body);
         } catch (error) {
@@ -38,7 +38,7 @@ module.exports = function (app) {
                     success: true,
                     prefersEmailUpdates: result[0].prefersEmailUpdates,
                 }
-                res.send(data)
+                res.status(200).send(data)
             }
         }); 
     });

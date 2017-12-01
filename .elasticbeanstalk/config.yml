@@ -11,6 +11,8 @@ branch-defaults:
     environment: Simplifai-env
   develop:
     environment: Simplifai-env
+  prefers-email-updates:
+    environment: Simplifai-env
   upload-file:
     environment: Simplifai-env
 environment-defaults:
