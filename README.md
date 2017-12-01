@@ -230,7 +230,7 @@ Sends:
 Receives:
 ```javascript
 {
-    userID: String,
+    email: String,
     prefersEmailUpdates: Integer
 }
 ```

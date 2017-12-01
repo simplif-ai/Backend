@@ -13,7 +13,7 @@ module.exports = function (app) {
 
     /**
     * Parses the text from the article and returns the summarized text
-    * @param: req = {userID, prefersEmailUpdates}
+    * @param: req = {email, prefersEmailUpdates}
     * @return: res = {success, error?}
     */
     app.post('/preferEmailUpdates', function(req, res) {
@@ -23,10 +23,10 @@ module.exports = function (app) {
             res.status(500).send({ success: false, error: error });
             return;
         }
-        var userID = user.userID;
+        var email = user.email;
         var emails = user.prefersEmailUpdates;
 
-        connection.query("UPDATE users SET prefersEmailUpdates = ? WHERE idUser = ?", [emails, userID], function (err, result) {
+        connection.query("UPDATE users SET prefersEmailUpdates = ? WHERE email = ?", [emails, email], function (err, result) {
             if (err) {
                 console.log(err);
                 res.status(500).send({ success: false, error: "This user doesn't exist." });
