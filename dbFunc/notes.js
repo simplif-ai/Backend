@@ -31,12 +31,16 @@ module.exports = function (app) {
         }
         //console.log("gets here");
         var userEmail = body.email;
-        var text = body.text;
-        var name = text.substring(0, 15);
+        console.log("userEmail: ", userEmail);
+        console.log("body.text: ", body.text);
+        var text = JSON.stringify(body.text);
+        var noteText = body.noteText;
+        //var text = body.query.text;
+        var name = body.name;
         var datetime = new Date();
         var noteid = body.noteID
         //console.log("email: ", body.email);
-        console.log("noteID: ", noteid);
+        console.log("name: ", name);
 
         if (noteid != null) {
             console.log("goes here");
@@ -49,21 +53,42 @@ module.exports = function (app) {
                     //console.log("created row in the notes table");
                     //add a summary row for the new summarized text
                     //console.log("noteID:" + result.insertId);
-
-                    connection.query('UPDATE summaries SET summarizedText = ? WHERE noteID = ?', [text, noteid], function (err, result) {
-                        //console.log("inside insert");
+                    var str;
+                    if(noteText == null){
+                        str = "UPDATE notes SET name = '" + name + "'" + " WHERE noteID = " + "'" + noteid + "'";
+                    }
+                    else if(name == null){
+                        str = "UPDATE notes SET noteText = " + "'" + noteText + "'" + " WHERE noteID = " + "'" +noteid + "'";
+                    }
+                    else if(noteText != null && name != null) {
+                        str = "UPDATE notes SET noteText = " + "'" + noteText + "'" + ", name = " + "'" + name + "'" +" WHERE noteID = " + "'" + noteid + "'";
+                        console.log("goes here!!!!!");
+                    }
+                    connection.query(str, function (err, result) {
+                        //console.log("goes in here");
                         if (err) {
                             res.status(500).send({ success: false, error: err });
-                        } else {
-                            var id = {
-                                noteID: noteid
-                            }
-                            //send status
-                            //res.sendStatus(200);
-                            //send nodeID
-                            res.status(200).send(id);
                         }
-                    });
+                        else {
+                            //console.log("created row in the notes table");
+                            //add a summary row for the new summarized text
+                            //console.log("noteID:" + result.insertId);
+                                connection.query('UPDATE summaries SET summarizedText = ? WHERE noteID = ?', [text, noteid], function (err, result) {
+                                    //console.log("inside insert");
+                                    if (err) {
+                                        res.status(500).send({ success: false, error: err });
+                                    } else {
+                                        var id = {
+                                            noteID: noteid
+                                        }
+                                        //send status
+                                        //res.sendStatus(200);
+                                        //send nodeID
+                                        res.status(200).send(id);
+                                    }
+                                });
+                }
+            });
                 }
             });
         }
@@ -79,13 +104,13 @@ module.exports = function (app) {
             else {
                 //console.log("Obtained userId from user email");
                 var id = result[0].idUser;
-                    //console.log("userId:", id);
+                    console.log("notText:", noteText);
                     //Add a column for new summarited text in note
                     //noteText is when a request made to save user's notes
                     var note = {
                         name: name,
                         dateRecorded: datetime,
-                        noteText: null,
+                        noteText: noteText,
                         userID: id
                     };
                     //console.log("note: ", note);
