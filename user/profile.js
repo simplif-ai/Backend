@@ -219,8 +219,8 @@ app.post('/getpicture', function (req, res) {
         var userEmail = body.userEmail;
         var colabEmail = body.colabEmail;
         //console.log("noteId:", noteID);
-        //console.log("useremail:", userEmail);
-        //console.log("colabemail:", colabEmail);
+        console.log("useremail:", userEmail);
+        console.log("colabemail:", colabEmail);
 
         var userID;
         var userIdColab;
@@ -233,9 +233,10 @@ app.post('/getpicture', function (req, res) {
             else {
                 //console.log("Obtained userId from user email");
                 //console.log("result:", result);
-                userID = result[0].idUser;
-                userIdColab = result[1].idUser;
-                //console.log("userId:", userID);
+                userID = result[1].idUser;
+                userIdColab = result[0].idUser;
+                console.log("userId:", userID);
+                console.log("userIdColab:", userIdColab);
                 var collaborator = {
                     noteID: noteID,
                     userID: userID,
