@@ -492,7 +492,7 @@ app.post('/getpicture', function (req, res) {
         // //console.log(JSON.parse(req.body));
         try {
             var user = JSON.parse(req.body);
-            var dateString = user.dateString;
+            //var dateString = user.dateString;
             var message = user.message;
         } catch (error) {
             res.status(500).send({ success: false, error: error });
@@ -513,9 +513,7 @@ app.post('/getpicture', function (req, res) {
             text: message,
             html: '<p>' + message + '</p>'
         }
-        var date = new Date(dateString);
         //date.format(now, dateString);
-        var job = schedule.scheduleJob(date, function(){
             //console.log(mailOptions.html);
             transporter.sendMail(mailOptions, function (error, info) {
                 //console.log(error);
@@ -532,6 +530,5 @@ app.post('/getpicture', function (req, res) {
                 transporter.close();
             });
         });
-    });
 }
 
