@@ -25,8 +25,6 @@ module.exports = function (app) {
         }
         var userID = user.userID;
         var emails = user.prefersEmailUpdates;
-        console.log(userID);
-        console.log(emails);
 
         connection.query("UPDATE users SET prefersEmailUpdates = ? WHERE idUser = ?", [emails, userID], function (err, result) {
             if (err) {
@@ -34,11 +32,7 @@ module.exports = function (app) {
                 res.status(500).send({ success: false, error: "This user doesn't exist." });
             } else {
                 console.log('no error');
-                var data = {
-                    success: true,
-                    prefersEmailUpdates: result[0].prefersEmailUpdates,
-                }
-                res.status(200).send(data)
+                res.status(500).send({ success: true, error: null });
             }
         }); 
     });
