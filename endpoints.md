@@ -289,4 +289,35 @@ Send:
     ]
     err
 
+### /getcollaborators
+ 
+ Request:
+    {
+        'userEmail':'','noteId':''
+    } 
+ Send: 
+ [
+     {
+         'colabEmail':'',
+         'name':''
+     }
+ ] 
+  err
+
+### /emailReminder
+This endpoint will send an email to the email passed in using the mailer. The email will contain a reminder message.
+    Request: 
+    {
+        "email": "",
+        "dateString": 'YYYY/MM/DD HH:mm:ss',
+        "message": ""
+    }
+    
+    Send:
+    {
+        success: true
+    } 
+    err
+
+
    
