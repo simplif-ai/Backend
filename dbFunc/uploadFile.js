@@ -28,10 +28,11 @@ module.exports = function (app) {
             });
 
 	        var req = request.post('http://ir.thirty2k.com/upload', function (err, resp, body) {
-	        	if (!resp.error && response.statusCode == 200) {
-                    res.status(200).send(response.body);
+	        	let sad = JSON.parse(resp.body);
+	        	if (sad.success === true) {
+                    res.status(200).send(sad);
                 } else {
-                    res.status(500).send({success: false, error: error});
+                    res.status(500).send({success: false, error: sad.error});
                 }
 			});
 
