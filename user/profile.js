@@ -30,7 +30,6 @@ module.exports = function (app) {
                     success: true,
                     name: result[0].name,
                     email: result[0].email,
-                    //password: result[0].password,
                     prefersEmailUpdates: result[0].prefersEmailUpdates,
                     postCount: result[0].postCount
                 }

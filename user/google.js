@@ -8,6 +8,66 @@ module.exports = function (app) {
     var hash = utility.hash;
     const googledrive = require('../src/Google/quickstart.js')
 
+
+    /**
+    * @param: req = {googleToken, event}
+    * an event object should follow this format: 
+      var event = {
+          'summary': 'Google I/O 2015',
+          'location': '800 Howard St., San Francisco, CA 94103',
+          'description': 'A chance to hear more about Google\'s developer products.',
+          'start': {
+            'dateTime': '2015-05-28T09:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+          },
+          'end': {
+            'dateTime': '2015-05-28T17:00:00-07:00',
+            'timeZone': 'America/Los_Angeles',
+          },
+          'recurrence': [
+            'RRULE:FREQ=DAILY;COUNT=2'
+          ],
+          'attendees': [
+            {'email': 'lpage@example.com'},
+            {'email': 'sbrin@example.com'},
+          ],
+          'reminders': {
+            'useDefault': false,
+            'overrides': [
+              {'method': 'email', 'minutes': 24 * 60},
+              {'method': 'popup', 'minutes': 10},
+            ],
+          },
+        };
+    * @return: res = {success, eventID, err?}
+    */
+    //allows the user to create a Google Calendar event
+    app.post('/createGoogleEvent', function(req, res) {
+       //function createCalendarEvent(token, event, callback) {
+
+        try {
+          var body = JSON.parse(req.body);
+          var googleToken = body.googleToken;
+          var event = body.event;
+        } catch (error) {
+          res.status(500).send({success: false, eventID: null, error: err});
+          return;
+        }
+
+        if (!(googleToken && event)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken and event."});
+            return;
+        } 
+
+        googledrive.createCalendarEvent(googleToken, event, function(success, eventID, error) {
+            if (!success || error != null || eventID == null) {
+              res.status(500).send({success: false, eventID: null, error: error});
+            } else {
+              res.status(200).send({success: true, eventID: eventID, error: error});
+            }
+        });
+    });
+
     /**
     * @param: req = {googleCode}
     * @return: res = {authorizeURL, success, googleToken}
@@ -16,19 +76,18 @@ module.exports = function (app) {
     app.post('/loginToGoogle', function(req, res) {
       try {
         var body = JSON.parse(req.body);
-      } catch (error) {
-        res.status(500).send({success: false, error: err});
-      }
-
-      try {
         var googleCode = body.googleCode;
       } catch (error) {
-        console.log('in error');
-        res.status(500).send({success: false, error: err});
+        res.status(500).send({success: false, error: "No body found"});
+        return;
       }
 
-      //if I was given a googleCode, try to create a token out of it
+      if (!(googleCode)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleCode."});
+            return;
+      } 
 
+      //if I was given a googleCode, try to create a token out of it
       googledrive.authenticateUser(googleCode, function(success, authorizeURL, googleToken) {
         if (success) {
             res.status(200).send({success:true, googleToken: googleToken});
@@ -56,12 +115,17 @@ module.exports = function (app) {
           return;
       }
 
+      if (!(googleToken && text && title)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken, title, or text."});
+            return;
+      }
+
     //(title, text, auth)
-      googledrive.upload(title, text, googleToken, function(error, success) {
-        if (error || !success) {
-          res.status(500).send({success: false, error: error});
+      googledrive.upload(title, text, googleToken, function(error, file) {
+        if (error) {
+          res.status(500).send({fileID: file, error: error});
         } else {
-          res.status(200).send({success: true});
+          res.status(200).send({fileID: file.id});
         }
       });
     });
@@ -81,6 +145,11 @@ module.exports = function (app) {
       } catch(error) {
           res.status(500).send({success: false, error: error});
           return;
+      }
+
+      if (!(googleToken && collaboratorEmail && fileID)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken, fileID, or collaboratorEmail."});
+            return;
       }
 
       //TODO: store the collaborator's email in our database
@@ -108,6 +177,11 @@ module.exports = function (app) {
           return;
       }
 
+      if (!(googleToken && email)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken or email."});
+            return;
+      }
+
       googledrive.getProfilePicture(googleToken, email, function(err, url) {
         console.log(url);
           if (err != null) {
@@ -129,17 +203,21 @@ module.exports = function (app) {
         var name = body.name;
         var googleToken = body.googleToken;
       } catch(error) {
-          console.log(error);
           res.status(500).send({success: false, error: error});
           return;
       }
 
+      if (!(googleToken && name)) {
+            res.status(500).send({success: false, eventID: null, error: "Failed to find googleToken or name."});
+            return;
+      }
+
     //(name, token, callback) 
-      googledrive.createFolder(name, googleToken, function(err, success) {
+      googledrive.createFolder(name, googleToken, function(err, fileID) {
         if (err) {
-          res.status(500).send({success: false, error: err});
+          res.status(500).send({fileID: fileID, error: err});
         } else {
-          res.status(200).send({success: true});
+          res.status(200).send({fileID: fileID});
         }
       });
     });
