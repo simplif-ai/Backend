@@ -32,7 +32,7 @@ module.exports = function (app) {
                 res.status(500).send({ success: false, error: "This user doesn't exist." });
             } else {
                 console.log('no error');
-                res.status(500).send({ success: true, error: null });
+                res.status(200).send({ success: true, error: null });
             }
         }); 
     });
