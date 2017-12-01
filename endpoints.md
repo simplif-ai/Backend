@@ -294,7 +294,7 @@ Send:
  
  Request:
     {
-        'userEmail':'','noteId':''
+        'userEmail':'','noteID':''
     } 
  Send: 
  [
