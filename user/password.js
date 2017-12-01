@@ -49,7 +49,14 @@ module.exports = function (app) {
         })
     });
 
-    //this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+    /**this endpoint will send an email to the email passed in using the mailer. The email will contain a link so the user can reset their password
+    ** @req: {
+                "email": "",
+                "dateString": 'YYYY/MM/DD HH:mm:ss'
+              }
+    ** @res: {success: true} 
+    **       err
+    **/ 
     app.post('/resetPassword', function (req, res, next) {
         //use mailer to send email to the email address passed in.
         ////console.log(req);
@@ -76,13 +83,14 @@ module.exports = function (app) {
             text: url,
             html: '<p>' + url + '</p>'
         }
+ 
         //console.log(mailOptions.html);
         transporter.sendMail(mailOptions, function (error, info) {
             //console.log(error);
             //console.log(info);
             if (error) {
                 //console.log('error sending email for resetting password');
-                res.status(500).send({ success: false, error: error });                
+                 res.status(500).send({ success: false, error: error });                
             }
             else {
                 //console.log('Email sent: ' + req.param.url);
@@ -90,8 +98,7 @@ module.exports = function (app) {
             }
             nodemailer.getTestMessageUrl(info);
             transporter.close();
-        });
-
-
+        });   
     });
+
 }

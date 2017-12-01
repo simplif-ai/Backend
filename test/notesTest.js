@@ -78,7 +78,7 @@ describe('save/update notes to db with note name', () => {
         //console.log("error: ", err);
       res.should.have.status(200);
       res.body.should.be.a('object');
-      res.body.should.have.property('success').eql(true);
+      res.body.should.have.property('name');
       done();
     });
 
@@ -103,9 +103,86 @@ describe('save/update name of notes to db', () => {
         //console.log("error: ", err);
       res.should.have.status(200);
       res.body.should.be.a('object');
-      res.body.should.have.property('success').eql(true);
       done();
     });
 
   });
 });
+
+//Test listnotes
+describe('listnotes', () => {
+  
+    it('You should return sucess: true', (done) => {
+      //the text to send to request
+      let req = {
+        "email": "test@gmail.com",
+      };
+      let reqtext = JSON.stringify(req);
+      chai.request(app)
+      .post('/listnotes')
+      .set('content-type', 'text/plain')
+      .send(reqtext)
+      .end((err, res)=>{
+          //console.log("error: ", err);
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+        //res.body.should.have.property('noteID');
+        //res.body.should.have.property('name');
+        done();
+      });
+
+    });
+  });
+
+  //Test getsumandnote
+describe('getsumandnote', () => {
+  
+    it('You should return sucess: true', (done) => {
+      //the text to send to request
+      let req = {
+        "email": "test@gmail.com",
+        "noteID": "27"
+      };
+      let reqtext = JSON.stringify(req);
+      chai.request(app)
+      .post('/getsumandnote')
+      .set('content-type', 'text/plain')
+      .send(reqtext)
+      .end((err, res)=>{
+          //console.log("error: ", err);
+        res.should.have.status(200);
+        res.body.should.be.a('array');
+        //res.body.should.have.property('summary');
+        //res.body.should.have.property('noteText');
+        done();
+      });
+      
+    });
+
+});
+
+//Test deletenote
+describe('deletenote', () => {
+  
+    it('You should return sucess: true', (done) => {
+      //the text to send to request
+      let req = {
+        "email": "leinam@gmail.com",
+        "noteID": "14"
+      };
+      let reqtext = JSON.stringify(req);
+      chai.request(app)
+      .post('/deletenote')
+      .set('content-type', 'text/plain')
+      .send(reqtext)
+      .end((err, res)=>{
+          //console.log("error: ", err);
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('success').eql(true);
+        done();
+      });
+  
+    });
+  });
+  

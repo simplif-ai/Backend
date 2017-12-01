@@ -11,8 +11,9 @@ module.exports = function (app) {
     **and send it to db
     **could send noteID in response here if needed for frontend?
     **the body contains user's email, text: {email, text}
+    ** To create a note and save the summary 
     **@req: {"email":"", "text":""}
-    **@res: {"noteID":""}
+    **@res: {"noteID":"", }
     **/
     app.post('/createnote', function (req, res) {
         /*connection.connect(function (err) {
@@ -92,9 +93,12 @@ module.exports = function (app) {
 
     /**
      * Saves the notes added with user's summary on to the notes table 
+     * To saves any notes by user and name if name exists
+     * Returns name of note if name is saved with note
      *@req: {'noteId':'', 'name: name', noteText':''}
      *@ret: {'success: true'} 
      *       err
+     *      {'name': ''}
      **/
     app.post('/updatenote', function (req, res) {
         //console.log("body:", req.body);
@@ -136,7 +140,12 @@ module.exports = function (app) {
                 }
                 else {
                     //console.log("Success!");
-                    res.status(200).send({ success: true });
+                    var nameSend = 
+                    {
+                        name:name
+                    }
+                    res.status(200);
+                    res.send(nameSend);
                 }
             });
         }
@@ -150,7 +159,12 @@ module.exports = function (app) {
                 }
                 else {
                     //console.log("Success!");
-                    res.status(200).send({ success: true });
+                    var nameSend = 
+                    {
+                        name:name
+                    }
+                    res.status(200);
+                    res.send(nameSend);
                 }
             });
         }
@@ -198,6 +212,7 @@ app.post("/listnotes", function(req, res){
               }
               array.push(noteObject);
             }
+            res.status(200);
             //send back an array of noteObject that contains noteID and name
             res.send(array);
           }
@@ -205,6 +220,109 @@ app.post("/listnotes", function(req, res){
       }
     });
   });
+
+
+  /**
+   ** Click on a note and view its summary and/or user notes(if exists)
+   ** @req: {
+                "email": "",
+                "noteID": ""
+            }
+   ** @res: [{"summary" : "", "noteText" : ""}]
+   **/
+  app.post("/getsumandnote", function(req, res) {
+    try {
+        var body = JSON.parse(req.body);
+    } catch (error) {
+        res.status(500).send({ success: false, error: err });
+    }
+    var userEmail = body.email;
+    var noteID = body.noteID;
+    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+        //console.log("gets here1");
+        //console.log("result:", result);
+         if (err) {
+           res.status(500).send({ success: false, error: err });
+         }
+         else {
+            var id = result[0].idUser;
+            //console.log("id:", id);
+             //get the all the notes of the giver userID
+             connection.query("SELECT * FROM notes WHERE userID = ? AND noteID = ?",[id, noteID], function(err, result) {
+               //console.log("here");
+               if (err) {
+                 res.status(500).send({ success: false, error: err });
+               }
+               else {
+                   console.log("hi: ", result[0]);
+                    var noteText = result[0].noteText;
+                    connection.query ("SELECT * FROM summaries WHERE noteID = ?",[noteID], function(err, result){
+                        if (err) {
+                            res.status(500).send({ success: false, error: err });
+                        }
+                        else {
+                            var array = [];
+                            console.log("result", result);
+                            var summary = result[0].summarizedText;
+                            console.log("summary", summary);
+                            var noteandsum = {
+                                summary: summary,
+                                noteText: noteText
+                            }
+                            console.log("noteandsum:", noteandsum);
+                            array.push(noteandsum);
+                            res.status(200);
+                            res.send(array);
+                        }
+                    });
+                }
+            });
+         }
+    });
+  });
+
+   /**
+   ** To delete a whole note with summary and note 
+   ** @req: {"email": "", "noteID": }
+   ** @res: {'success: true'} 
+   **       err
+   **/
+  app.post("/deletenote", function(req, res) {
+    try {
+        var body = JSON.parse(req.body);
+        var userEmail = body.email;
+        var noteID =  body.noteID;
+    } catch (error) {
+        res.status(500).send({ success: false, error: err });
+    }
+    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+        //console.log("gets here1");
+        //console.log("result:", result);
+         if (err) {
+           res.status(500).send({ success: false, error: err });
+         }
+         else {
+            var userID = result[0].idUser;
+            connection.query("DELETE FROM notes WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
+                if (err) {
+                    res.status(500).send({ success: false, error: err });
+                }
+                else {
+                    connection.query("DELETE FROM summaries WHERE noteID = ?", [noteID], function (err, result) {
+                        if (err) {
+                            res.status(500).send({ success: false, error: err });
+                        }
+                        else {
+                            console.log("result", result[0]);
+                            res.status(200).send({ success: true });
+                        }
+                    });
+                }
+            });
+        }
+    });
+  });
+
 
 }
 
