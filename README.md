@@ -225,6 +225,24 @@ Sends:
 }
 ```
 
+### /preferEmailUpdates
+
+Receives:
+```javascript
+{
+    userID: String,
+    prefersEmailUpdates: Integer
+}
+```
+Sends:
+```javascript
+{
+    success: Boolean,
+    error?: String
+}
+```
+
+
 ### /parseURL
 Receives:
 ```javascript
