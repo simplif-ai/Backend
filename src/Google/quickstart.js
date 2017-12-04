@@ -295,34 +295,43 @@ function createSimplifaiFolder(token, callback) {
 * Upload the given summary to the user's google drive account
 */
 function upload(title, text, token, callback) {
-  getOauth(token, function (auth) {
-      var drive = google.drive('v2');
 
-      var fileMetadata = {
-        'title': title,
-        'mimeType': 'application/vnd.google-apps.document'
-      };
+  getSimplifaiFolder(token, function(err, folder) {
 
-      var media = {
-        mimeType: 'text/plain',
-        body: text
-      };
+    if (err) {
+      callback(err, null);
+    } else {
+        getOauth(token, function (auth) {
+            var drive = google.drive('v2');
 
-      drive.files.insert({
-        auth: auth,
-        resource: fileMetadata,
-        media: media,
-        fields: 'id'
-      }, function (err, file) {
-        if (err) {
-          callback(err, null);
-          // Handle error
-        } else {
-          callback(null, file)
-        }
-      });
-  }); 
-}
+            var fileMetadata = {
+              'title': title,
+               parents: [{id: folder}],
+              'mimeType': 'application/vnd.google-apps.document'
+            };
+
+            var media = {
+              mimeType: 'text/plain',
+              body: text
+            };
+
+            drive.files.insert({
+                auth: auth,
+                resource: fileMetadata,
+                media: media,
+                fields: 'id'
+              }, function (err, file) {
+                  if (err) {
+                    callback(err, null);
+                    // Handle error
+                  } else {
+                    callback(null, file)
+                  }
+              });
+          });
+      }
+    });
+};
 
 module.exports = {
   "googledrive": googledrive,

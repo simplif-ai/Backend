@@ -44,11 +44,11 @@ describe('Calendar Endpoint', () => {
   it('Should return success and an eventID when parameters are correct', (done) => {
     //the text to send to request
     let req = {
-      "googleToken": {
-        "access_token": "ya29.GlwSBZwV4eFhH6-YMsOYy-OH8-a9iz0xemuxF8gpigt26AVweVhihCV8CXiRNUC4rJKgB019Gdzv34DVjwiWAMVz5RohoT_F8EcN7NWLlTvoek_e5ck0b2bUruXteQ",
-        "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjVlM2I5MzgxMGY2OTQzZWFiYmI3N2Q1ZTJjMzM1ODRlZGU3NjZjZGMifQ.eyJhenAiOiI5NTA3ODMzMzY2MDctYTBhb2I4amkybzNra2x2NDFqOGZoOHE4ZWQwdGVnczguYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5NTA3ODMzMzY2MDctYTBhb2I4amkybzNra2x2NDFqOGZoOHE4ZWQwdGVnczguYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDEyMTE0NTcyNjY0MzQ5MjQ4MzkiLCJlbWFpbCI6InNkYmxhdHpAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiI3VUZMWUM1ZVpUd1c0Rm9UN0ZITndRIiwiaXNzIjoiYWNjb3VudHMuZ29vZ2xlLmNvbSIsImlhdCI6MTUxMTg4NDY4NCwiZXhwIjoxNTExODg4Mjg0fQ.AWSMtsncm6BGhEknrpCAmRmcdMt5QSeJgkotryLN51DedjRP_NZTd3Eigh3UIaYMDscJO3QiXmH6jJnbLty2rSzMAsU5JaGfFv2lXl8NnTWi1sLu6VDCf6EhNapXMka7kkjVkTizZFQWvvvSGNoLENxVgKMCR6OIbeAJ9g2-4-s1AL7ckLW6aMMZ4iq27wGJMKmQQTicmEddhuUuW8-unwvCsIh2atBNrcuQrLsvyjGIf6yIxS6YX8xPYSqE1ciOJJsOMlYJY_XNyJUOBvNmZvtnEzlLiwY-e5TQEkcxneuYAgeCoW_enrOqRggNCJz35FsMKCDxEIaBPLCUT4olew",
+     "googleToken": {
+        "access_token": "ya29.GlwVBZWktuY6zaPMjCaKKM1ey0hs78zQU37JkLemi_qR23maayoZGRnQvc6Xe97raJLBvL0dgs6sgk760W_j-SyHacc4aCyp2eCCO16-nEzrwb4VBvk5RahbkFLXiA",
+        "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjkwM2VkMTIwOTRkNjk3MGEzNDNiOWY5MzAzZjU0Nzg5MGE1NTFmZTgifQ.eyJhenAiOiI5NTA3ODMzMzY2MDctYTBhb2I4amkybzNra2x2NDFqOGZoOHE4ZWQwdGVnczguYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiI5NTA3ODMzMzY2MDctYTBhb2I4amkybzNra2x2NDFqOGZoOHE4ZWQwdGVnczguYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDEyMTE0NTcyNjY0MzQ5MjQ4MzkiLCJlbWFpbCI6InNkYmxhdHpAZ21haWwuY29tIiwiZW1haWxfdmVyaWZpZWQiOnRydWUsImF0X2hhc2giOiJuMW41Mll2ZXAydDZWQjhmMXU3RjJnIiwiaXNzIjoiYWNjb3VudHMuZ29vZ2xlLmNvbSIsImlhdCI6MTUxMjE3MTkxNywiZXhwIjoxNTEyMTc1NTE3fQ.E5pYXPc2z1hOoduRS77gYTYVaETRYiqLaRrkLlp5_1LjZZVkVTPt1OnI6FXw2rzGPsF17aEhLdk7acecN5ksgdV6_0BKheJ8X_XHOJ0nX7fQrGcbyaPR5FCakXv-N62PNUPCHXtgTB8ULu2tPQqxmuhagGDHlCSM5q3RqaDmX7xNOfFu_tyDmc6NuIB6Zugfq1XilubD1R4-MTnrCeVWI3yheJ9ZnzRzM_rDWB8AecrOZeG9CHj-Gbk8eLJD1CVFATYjiZr9SlQi_-3k88EXpA0Z0Bs_rknnKTjK_StDFutOWpl5bhideHNwXXXUzGexWmxHl9OsmZpRH7tvfbXmKQ",
         "token_type": "Bearer",
-        "expiry_date": 1511888272466
+        "expiry_date": 1512175508186
     },
       "event" : {
             "summary": "Example Event from Simplif.ai",
