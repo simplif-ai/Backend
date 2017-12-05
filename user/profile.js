@@ -16,7 +16,7 @@ module.exports = function (app) {
     * @param: req = {email, prefersEmailUpdates}
     * @return: res = {success, error?}
     */
-    app.post('/preferEmailUpdates', function(req, res) {
+    app.post('/preferEmailUpdates', function (req, res) {
         try {
             var user = JSON.parse(req.body);
         } catch (error) {
@@ -34,7 +34,7 @@ module.exports = function (app) {
                 console.log('no error');
                 res.status(200).send({ success: true, error: null });
             }
-        }); 
+        });
     });
 
     app.post('/profile', function (req, res) {
@@ -43,7 +43,7 @@ module.exports = function (app) {
         try {
             var user = JSON.parse(req.body);
         } catch (error) {
-            res.status(500).send({ success: false, error: error});
+            res.status(500).send({ success: false, error: error });
         }
         var email = user.email;
         //console.log('req.body', JSON.parse(req.body));
@@ -142,7 +142,7 @@ module.exports = function (app) {
         }*/
         var userEmail = req.body.email;
         var picturePath = 'uploads/' + req.file.filename;
-        console.log("pic",picturePath)
+        console.log("pic", picturePath)
         console.log("email:", userEmail);
         console.log("dirname: ", __dirname);
         console.log("filename: ", req.file.filename)
@@ -154,10 +154,10 @@ module.exports = function (app) {
             const { exec } = require('child_process');
             exec('ls ./uploads', (err, stdout, stderr) => {
                 if (err) {
-                  // node couldn't execute the command
-                  return;
+                    // node couldn't execute the command
+                    return;
                 }
-              
+
                 // the *entire* stdout and stderr (buffered)
                 console.log(`stdout: ${stdout}`);
                 console.log(`stderr: ${stderr}`);
@@ -191,39 +191,39 @@ module.exports = function (app) {
  * @res:{success: true} 
  *       err
  **/
-app.post('/getpicture', function (req, res) {
-    try {
-      var body = JSON.parse(req.body);
-    } catch (err) {
-      //console.log("here1:", err);
-      res.status(500).send({ success: false, error: err });
-    }
-    //console.log("body", body);
-    var userEmail = body.email;
-    //console.log("email", userEmail);
-    //query db for picturepath
-    connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
-      //console.log("gets here1");
-      //console.log("result:", result);
-      if (err) {
-        //console.log("here3:", err);
-        res.status(500).send({ success: false, error: err });
-      }
-      else {
-        //console.log("Obtained userId from user email");
-        var picturePath = result[0].picturePath;
-        //console.log("result:", result[0]);
+    app.post('/getpicture', function (req, res) {
         try {
-          //console.log("absolute path: ", path.resolve(picturePath));
-          res.download(path.resolve(picturePath));
+            var body = JSON.parse(req.body);
         } catch (err) {
-          //console.log("here4:", err);
-          res.status(500).send({ success: false, error: err });
+            //console.log("here1:", err);
+            res.status(500).send({ success: false, error: err });
         }
-      }
+        //console.log("body", body);
+        var userEmail = body.email;
+        //console.log("email", userEmail);
+        //query db for picturepath
+        connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
+            //console.log("gets here1");
+            //console.log("result:", result);
+            if (err) {
+                //console.log("here3:", err);
+                res.status(500).send({ success: false, error: err });
+            }
+            else {
+                //console.log("Obtained userId from user email");
+                var picturePath = result[0].picturePath;
+                //console.log("result:", result[0]);
+                try {
+                    //console.log("absolute path: ", path.resolve(picturePath));
+                    res.download(path.resolve(picturePath));
+                } catch (err) {
+                    //console.log("here4:", err);
+                    res.status(500).send({ success: false, error: err });
+                }
+            }
+        });
     });
-  });
-  
+
 
     /**Add collaborators to users
      * The user wants to add a collaborator so they select a note and enter the email address
@@ -250,21 +250,27 @@ app.post('/getpicture', function (req, res) {
 
         var userID;
         var userIdColab;
-                                                                
+
         //get the userID from userEmail
         connection.query("SELECT * FROM users WHERE email IN ('" + userEmail + "', '" + colabEmail + "')", function (err, result) {
             if (err) {
                 res.status(500).send({ success: false, error: err });
             }
             else {
-                if(result[0] == null || result[1] == null) {
+                if (result[0] == null || result[1] == null) {
                     var message = "Incorrect userEmail or colabEmail"
                     res.status(500).send(message);
                 }
                 //console.log("Obtained userId from user email");
-                //console.log("result:", result);
-                userID = result[0].idUser;
-                userIdColab = result[1].idUser;
+                console.log("result:", result);
+                if (result[1].email == userEmail) {
+                    userID = result[1].idUser;
+                    userIdColab = result[0].idUser;
+                }
+                else {
+                    userID = result[0].idUser;
+                    userIdColab = result[1].idUser;
+                }
                 console.log("userId:", userID);
                 console.log("userIdColab:", userIdColab);
                 var collaborator = {
@@ -310,38 +316,38 @@ app.post('/getpicture', function (req, res) {
             else {
                 //console.log("Obtained userId from user email");
                 console.log("result:", result);
-                if(result[0] == null) {
+                if (result[0] == null) {
                     var message = "Incorrect email address";
                     res.status(500).send(message);
                 }
                 userID = result[0].idUser;
-           
+
                 console.log("userId:", userID);
                 //console.log("collaborator: ", collaborator);
                 //get the user's collaborators ids
                 connection.query("SELECT * FROM collaborators WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
                     //console.log("goes in here");
                     if (err) {
-                       // var message = "Incorrect noteID";
-                       res.status(500).send({ success: false, error: err });
+                        // var message = "Incorrect noteID";
+                        res.status(500).send({ success: false, error: err });
                     }
                     else {
                         //console.log("created row in the collaborator table");
                         //add all notes and their name to an array 
-                        if(result[0] == null) {
+                        if (result[0] == null) {
                             var message = "Incorrect noteID";
                             res.status(500).send(message);
                         }
                         var array = [];
                         var userIdColabList = [];
                         //console.log(result.length);
-                        for(var i = 0; i < result.length; i++){
+                        for (var i = 0; i < result.length; i++) {
                             userIdColabList.push(result[i].userIdColab);
                             //console.log("colabId:", userIdColab);
-                           // console.log("goes here1");
+                            // console.log("goes here1");
                         }
                         var userIdString = "SELECT * FROM users WHERE idUser = ?"
-                        for(var i = 1; i < userIdColabList.length; i++) {
+                        for (var i = 1; i < userIdColabList.length; i++) {
                             userIdString += " OR idUser = ?"
                         }
                         //console.log(userIdString);
@@ -353,8 +359,8 @@ app.post('/getpicture', function (req, res) {
                             }
                             else {
                                 //console.log("comes here");
-                                for(var i = 0; i < result.length; i++) {
-                                
+                                for (var i = 0; i < result.length; i++) {
+
                                     var colabEmail = result[i].email;
                                     var name = result[i].name;
                                     //console.log("colabEmail:", colabEmail);
@@ -372,7 +378,7 @@ app.post('/getpicture', function (req, res) {
                                 res.status(200);
                                 res.send(array);
                             }
-                        });   
+                        });
                     }
                 });
             }
@@ -402,14 +408,20 @@ app.post('/getpicture', function (req, res) {
                 res.status(500).send({ success: false, error: err });
             }
             else {
-                if(result[0] == null || result[1] == null) {
+                if (result[0] == null || result[1] == null) {
                     var message = "Incorrect userEmail or colabEmail"
                     res.status(500).send(message);
                 }
                 //console.log("Obtained userId from user email");
                 console.log("result:", result);
-                userIdColab = result[1].idUser;
-                userID = result[0].idUser;
+                if (result[1].email == userEmail) {
+                    userID = result[1].idUser;
+                    userIdColab = result[0].idUser;
+                }
+                else {
+                    userID = result[0].idUser;
+                    userIdColab = result[1].idUser;
+                }
                 console.log("colabId:", userIdColab);
                 connection.query("DELETE FROM collaborators WHERE userIdColab = ? AND userID = ? AND noteID = ?", [userIdColab, userID, noteID], function (err, result) {
                     if (err) {
@@ -480,16 +492,16 @@ app.post('/getpicture', function (req, res) {
             }
             else {
                 var array = [];
-                for(var i = 0; i < result.length; i++) {
+                for (var i = 0; i < result.length; i++) {
                     var userID = result[i].idUser;
                     var name = result[i].name;
                     var feedback = result[i].feedback;
-                    var developFeed = 
-                    {
-                        userID: userID,
-                        name: name,
-                        feedback: feedback
-                    }
+                    var developFeed =
+                        {
+                            userID: userID,
+                            name: name,
+                            feedback: feedback
+                        }
                     array.push(developFeed);
                 }
                 res.status(200);
@@ -506,7 +518,7 @@ app.post('/getpicture', function (req, res) {
               }
     ** @res: {success: true} 
     **       err
-    **/ 
+    **/
     app.post('/emailReminder', function (req, res, next) {
         //use mailer to send email to the email address passed in.
         ////console.log(req);
@@ -529,37 +541,37 @@ app.post('/getpicture', function (req, res) {
         });
         var mess;
         if (date != null) {
-            mess = '<p>' + message + '</p>' + '<p>' + 'Date reminder: '+ date + '</p>';
+            mess = '<p>' + message + '</p>' + '<p>' + 'Date reminder: ' + date + '</p>';
         }
         else {
             //console.log("goes in here");
             mess = '<p>' + message + '</p>';
         }
         //console.log("mess: " + mess);
-                //console.log(transporter);
+        //console.log(transporter);
         var mailOptions = {
             from: 'simplif.ai17@gmail.com',
             to: email,
             subject: 'Reminder from Simplif.ai',
             text: message,
-            html: mess 
+            html: mess
         }
         //date.format(now, dateString);
-            //console.log(mailOptions.html);
-            transporter.sendMail(mailOptions, function (error, info) {
-                //console.log(error);
-                //console.log(info);
-                if (error) {
-                    //console.log('error sending email for resetting password');
-                    res.status(500).send({ success: false, error: error });                
-                }
-                else {
-                    //console.log('Email sent: ' + req.param.url);
-                    res.status(200).send({ success: true });
-                }
-                nodemailer.getTestMessageUrl(info);
-                transporter.close();
-            });
+        //console.log(mailOptions.html);
+        transporter.sendMail(mailOptions, function (error, info) {
+            //console.log(error);
+            //console.log(info);
+            if (error) {
+                //console.log('error sending email for resetting password');
+                res.status(500).send({ success: false, error: error });
+            }
+            else {
+                //console.log('Email sent: ' + req.param.url);
+                res.status(200).send({ success: true });
+            }
+            nodemailer.getTestMessageUrl(info);
+            transporter.close();
         });
+    });
 }
 
