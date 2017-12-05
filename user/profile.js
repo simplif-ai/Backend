@@ -334,10 +334,10 @@ module.exports = function (app) {
                     else {
                         //console.log("created row in the collaborator table");
                         //add all notes and their name to an array 
-                        if (result[0] == null) {
+                        /*if (result[0] == null) {
                             var message = "Incorrect noteID";
                             res.status(500).send(message);
-                        }
+                        }*/
                         var array = [];
                         var userIdColabList = [];
                         //console.log(result.length);
