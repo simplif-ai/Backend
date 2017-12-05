@@ -67,7 +67,7 @@ module.exports = function (app) {
             res.status(500).send({ success: false, error: error });
         }
         var email = user.email;
-        var url = 'http://localhost:3000/password-reset?email=' + email;
+        var url = 'http://simplif.ai.s3-website.us-east-2.amazonaws.com/password-reset';
         var transporter = nodemailer.createTransport({
             service: 'GMAIL',
             auth: {
@@ -75,13 +75,15 @@ module.exports = function (app) {
                 pass: 'simplif.ai2017'
             }
         });
+        var mess = 'The link to reset password is provided below: '
+        var temp = '<p>' + mess + '</p>' + '<p>' + url + '</p>';
         //console.log(transporter);
         var mailOptions = {
             from: 'simplif.ai17@gmail.com',
             to: email,
             subject: 'Reset password to Simplif.ai',
             text: url,
-            html: '<p>' + url + '</p>'
+            html: temp
         }
  
         //console.log(mailOptions.html);

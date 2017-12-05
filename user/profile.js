@@ -480,7 +480,7 @@ app.post('/getpicture', function (req, res) {
     /**this endpoint will send an email to the email passed in using the mailer. The email will contain a reminder message.
     ** @req: {
                 "email": "",
-                "dateString": 'YYYY/MM/DD HH:mm:ss',
+                "dateString": 'DD/MM/YYYY HH:mm:ss',
                 "message": ""
               }
     ** @res: {success: true} 
@@ -494,6 +494,7 @@ app.post('/getpicture', function (req, res) {
             var user = JSON.parse(req.body);
             //var dateString = user.dateString;
             var message = user.message;
+            var date = user.dateString;
         } catch (error) {
             res.status(500).send({ success: false, error: error });
         }
@@ -505,13 +506,22 @@ app.post('/getpicture', function (req, res) {
                 pass: 'simplif.ai2017'
             }
         });
-        //console.log(transporter);
+        var mess;
+        if (date != null) {
+            mess = '<p>' + message + '</p>' + '<p>' + 'Date reminder: '+ date + '</p>';
+        }
+        else {
+            //console.log("goes in here");
+            mess = '<p>' + message + '</p>';
+        }
+        //console.log("mess: " + mess);
+                //console.log(transporter);
         var mailOptions = {
             from: 'simplif.ai17@gmail.com',
             to: email,
             subject: 'Reminder from Simplif.ai',
             text: message,
-            html: '<p>' + message + '</p>'
+            html: mess 
         }
         //date.format(now, dateString);
             //console.log(mailOptions.html);
