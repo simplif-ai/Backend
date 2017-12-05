@@ -257,10 +257,14 @@ app.post('/getpicture', function (req, res) {
                 res.status(500).send({ success: false, error: err });
             }
             else {
+                if(result[0] == null || result[1] == null) {
+                    var message = "Incorrect userEmail or colabEmail"
+                    res.status(500).send(message);
+                }
                 //console.log("Obtained userId from user email");
                 //console.log("result:", result);
-                userID = result[1].idUser;
-                userIdColab = result[0].idUser;
+                userID = result[0].idUser;
+                userIdColab = result[1].idUser;
                 console.log("userId:", userID);
                 console.log("userIdColab:", userIdColab);
                 var collaborator = {
@@ -300,24 +304,34 @@ app.post('/getpicture', function (req, res) {
         //get the userID from userEmail
         connection.query("SELECT * FROM users WHERE email = ?", [userEmail], function (err, result) {
             if (err) {
+                //var message = "Incorrect email address";
                 res.status(500).send({ success: false, error: err });
             }
             else {
                 //console.log("Obtained userId from user email");
-                //console.log("result:", result);
+                console.log("result:", result);
+                if(result[0] == null) {
+                    var message = "Incorrect email address";
+                    res.status(500).send(message);
+                }
                 userID = result[0].idUser;
            
-                //console.log("userId:", userID);
+                console.log("userId:", userID);
                 //console.log("collaborator: ", collaborator);
                 //get the user's collaborators ids
                 connection.query("SELECT * FROM collaborators WHERE userID = ? AND noteID = ?", [userID, noteID], function (err, result) {
                     //console.log("goes in here");
                     if (err) {
-                        res.status(500).send({ success: false, error: err });
+                       // var message = "Incorrect noteID";
+                       res.status(500).send({ success: false, error: err });
                     }
                     else {
                         //console.log("created row in the collaborator table");
                         //add all notes and their name to an array 
+                        if(result[0] == null) {
+                            var message = "Incorrect noteID";
+                            res.status(500).send(message);
+                        }
                         var array = [];
                         var userIdColabList = [];
                         //console.log(result.length);
@@ -369,7 +383,7 @@ app.post('/getpicture', function (req, res) {
 
     /**
     * delete collaborators 
-    * @req:{'colabEmail':'','noteId':''} 
+    * @req:{'colabEmail':'','userEmail': '', noteId':''} 
     * @res:{success: true}
     *       err
     **/
@@ -380,22 +394,29 @@ app.post('/getpicture', function (req, res) {
             res.status(500).send({ success: false, error: error });
         }
         var colabEmail = body.colabEmail;
+        var userEmail = body.userEmail;
         var noteID = body.noteID;
         //get the userID from userEmail
-        connection.query("SELECT * FROM users WHERE email = ?", [colabEmail], function (err, result) {
+        connection.query("SELECT * FROM users WHERE email IN ('" + userEmail + "', '" + colabEmail + "')", function (err, result) {
             if (err) {
                 res.status(500).send({ success: false, error: err });
             }
             else {
+                if(result[0] == null || result[1] == null) {
+                    var message = "Incorrect userEmail or colabEmail"
+                    res.status(500).send(message);
+                }
                 //console.log("Obtained userId from user email");
-                //console.log("result:", result);
-                userIdColab = result[0].idUser;
-                //console.log("colabId:", userIdColab);
-                connection.query("DELETE FROM collaborators WHERE userIdColab = ? AND noteID = ?", [userIdColab, noteID], function (err, result) {
+                console.log("result:", result);
+                userIdColab = result[1].idUser;
+                userID = result[0].idUser;
+                console.log("colabId:", userIdColab);
+                connection.query("DELETE FROM collaborators WHERE userIdColab = ? AND userID = ? AND noteID = ?", [userIdColab, userID, noteID], function (err, result) {
                     if (err) {
                         res.status(500).send({ success: false, error: err });
                     }
                     else {
+                        console.log("result:", result);
                         res.status(200).send({ success: true });
                     }
                 });
